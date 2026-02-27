@@ -1,0 +1,374 @@
+\documentclass[UTF8]{beamer}
+
+\usepackage[fontset=none]{ctex}
+\usepackage{fontspec}
+\usepackage{minted}
+\usepackage{graphicx}
+
+% \setlength{\parindent}{2em}
+\setlength{\parskip}{0.5em}
+
+\setminted{
+    fontsize=\small,           % 字体大小
+    baselinestretch=1.0,       % 行间距
+    linenos=true,              % 行号
+    frame=lines,               % 边框样式
+    framesep=2mm,              % 边框间距
+    rulecolor=\color{black},   % 边框颜色
+    numbersep=5pt,             % 行号间距
+    breaklines=true,           % 自动换行
+    breakanywhere=false,       % 不在任意位置断行
+    showspaces=false,          % 不显示空格
+    showtabs=false,            % 不显示制表符
+    tabsize=4,                 % 制表符大小
+    % url=false,
+}
+
+\setmainfont{Source Serif Pro}
+\setsansfont{Source Sans Pro}[Scale=MatchLowercase]
+\setmonofont{Source Code Pro}[Scale=MatchLowercase]
+\setCJKmainfont[ItalicFont = * ]{Source Han Serif CN}
+\setCJKsansfont[ItalicFont = * ]{Source Han Sans CN}
+\setCJKmonofont[ItalicFont = * ]{Source Han Sans CN}
+
+\usetheme{CambridgeUS}
+\usefonttheme{serif}
+
+\title{《AI基础》课程编程指南}
+\author{臧炫懿}
+\date{\today}
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}
+    \frametitle{关于这门课的编程需求}
+
+    99\%的编程语言是Python，且往往需要使用GPU进行加速。
+
+    因此非常建议同学们使用GPU来完成作业，非常不建议用轻薄本运行作业，除非你不介意等待很长时间。
+
+    稍后会说明如何在没有自己的GPU的情况下完成作业。
+
+\end{frame}
+
+\section{Python和虚拟环境}
+\begin{frame}
+    \sectionpage
+\end{frame}
+
+\begin{frame}
+    \frametitle{安装Python}
+
+    对于Windows用户，敬请忽略这一步。
+    
+    如果确实需要，访问\url{https://www.python.org/downloads/}下载并安装Python。
+    
+    \alert{但是不很建议这么做。}这是因为Windows环境管理比较复杂，一般使用WSL或者Anaconda会好些。
+
+    对于Linux、MacOS用户，系统中要是没有Python那系统也跑不了了，一般来说系统中都会预装Python。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{虚拟环境的必要性}
+
+    \begin{itemize}
+        \item 依赖管理：不同项目可能需要不同版本的库，虚拟环境可以隔离这些依赖，避免冲突。
+        \item 环境隔离：每个虚拟环境都是独立的，可以在同一台机器上同时运行多个项目，而不会互相干扰。
+        \item 便于部署：虚拟环境可以打包项目所需的所有依赖，方便在不同环境中部署和运行。\alert{或者说，方便TA批作业时安装依赖。}
+    \end{itemize}
+
+    我提出两个方案：conda+pip和pixi。请务必使用其中一种方案来管理你的Python环境，并在提交作业时附上相应的环境配置文件，否则TA可能无法正确安装依赖并运行你的代码，由此导致的作业分数降低将由你自己承担。
+    
+\end{frame}
+
+\begin{frame}
+    \frametitle{conda+pip（基础情形）}
+
+    conda是数据科学领域最传统、最老大哥的包管理器和环境管理器，分为Anaconda和Miniconda两种版本。Anaconda包含了大量预装的科学计算库，而Miniconda则是一个轻量级的版本，用户可以根据需要安装所需的库。
+    
+    这两个挑一个安装即可。我个人建议安装Miniconda，因为它更轻量，安装后可以根据需要安装所需的库，而不会占用过多的磁盘空间。
+
+    conda最大的问题是慢，所以用pip辅助安装一些库是很常见的做法。
+
+    \url{https://docs.conda.io/projects/conda/en/23.11.x/user-guide/install/download.html}
+
+    \alert{conda是免费软件。如果你发现你需要付费，那说明你被骗了！}
+    
+\end{frame}
+
+\begin{frame}
+    \frametitle{安装conda}
+
+    安装conda时，\textbf{务必把conda添加到系统环境变量中}，否则你将无法在命令行中使用conda命令。
+
+    访问上一页提供的URL，下载适合你系统的Anaconda或Miniconda安装包并运行安装程序。
+
+    不建议Linux和MacOS用户使用包管理器安装conda，可能遇到各种各样难以言明的问题。
+
+    运行完毕后，打开一个新的命令行窗口，输入\mintinline{bash}|conda --version|来验证安装是否成功。如果显示conda的版本号，说明安装成功了。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{换源（非常重要！！！）}
+
+    由于网络原因，conda和PyPI默认的官方源在国内访问速度非常慢，甚至无法访问。因此，强烈建议将默认源替换为国内的镜像源，以提高安装和更新包的速度。
+
+    在校内用北大源（校内不限速），在校外用清华源（服务更好更稳定，更新更及时）。
+
+    北大源：\url{https://mirrors.pku.edu.cn/}
+    
+    清华源：\url{https://mirrors.tuna.tsinghua.edu.cn/}
+
+    在这两个网站上找anaconda和PyPI，按照说明进行换源配置即可。换源配置完成后，你就可以享受更快的安装速度了。
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{创建conda虚拟环境}
+
+    创建一个新的conda虚拟环境：
+
+\begin{minted}{bash}
+conda create -n myenv python=3.10
+\end{minted}
+
+    以上命令：
+    \begin{itemize}
+        \item \mintinline{bash}|create|：创建一个新的conda虚拟环境
+        \item \mintinline{bash}|-n myenv|：创建名为myenv的虚拟环境
+        \item \mintinline{bash}|python=3.10|：指定Python版本为3.10
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{激活conda虚拟环境}
+
+    激活虚拟环境：
+\begin{minted}{bash}
+conda activate myenv
+\end{minted}
+    以上命令将激活名为myenv的虚拟环境。激活后，你可以在该环境中安装所需的库并运行你的Python代码。你的命令行提示符通常会显示当前激活的环境名称，以便你知道你正在使用哪个环境。
+
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.8\textwidth]{env.png}
+    \end{figure}
+    
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{安装库}
+
+    在激活的虚拟环境中，你可以使用pip安装所需的库：
+
+\begin{minted}{bash}
+pip install numpy pandas matplotlib
+\end{minted}
+
+    以上命令将安装numpy、pandas和matplotlib库。
+
+    \alert{不要用conda直接装库，那样过时了。}
+
+    \alert{装库之前，务必确认自己的库装在哪里。不建议在系统环境里装任何库，不建议在base环境里装大库（比如torch）！}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{环境导出}
+
+    为了方便他人复现你的环境，你可以导出当前虚拟环境的配置文件。
+
+    导出环境配置文件：
+\begin{minted}{bash}
+pip freeze > requirements.txt
+\end{minted}
+
+    以上命令将导出当前pip环境中安装的所有库及其版本信息到requirements.txt文件中。其他人可以使用这个文件来安装相同的环境：
+\begin{minted}{bash}
+pip install -r requirements.txt
+\end{minted}
+
+\alert{请务必在提交作业时，将requirements.txt文件和你的代码一同提交！}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{离开虚拟环境}
+
+    当你完成工作后，可以使用以下命令离开当前虚拟环境：
+
+    离开虚拟环境：
+\begin{minted}{bash}
+conda deactivate
+\end{minted}
+    以上命令将退出当前激活的虚拟环境，返回到系统的默认环境（取决于你的设置：可能是base环境，也可能是没有任何环境）。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{pixi（进阶情形）}
+
+    pixi是一个相对较新的Python包管理器和环境管理器，旨在提供更快的安装速度和更简洁的用户体验。它使用了现代化的包管理技术，能够更高效地解决依赖关系，并且支持多平台。
+
+    pixi和conda相比有以下好处：
+    \begin{itemize}
+        \item 快。
+        \item 契约精神：提供一个环境配置文件，别人就能安装出完全一样的环境，100\%复现。
+        \item 环境和项目绑定：删除项目，环境自然被删除，不会出现conda常见的环境垃圾问题。
+    \end{itemize}
+
+    Windows用户访问：\url{https://pixi.prefix.dev/latest/installation/}
+
+    Linux和MacOS用户建议用包管理器安装。
+
+    \alert{pixi也是免费软件。如果你发现你需要付费，那说明你被骗了！}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{创建pixi虚拟环境}
+
+    创建一个新的pixi虚拟环境：
+\begin{minted}{bash}
+pixi init
+\end{minted}
+    这样仅初始化了一个新的pixi项目，没有安装任何东西（甚至包括Python）。
+
+    需要说明：pixi管理库的下载源是PyPI，换源方式和pip完全一致。具体操作往前翻。
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{pixi装包}
+
+    接下来有两种手段装包：
+\begin{itemize}
+    \item 直接装包：\mintinline{bash}|pixi add numpy pandas matplotlib|，会自动安装Python和这些库。
+    \item 编辑配置文件：pixi的环境配置文件是pixi.toml，直接编辑这个文件，添加你需要的库和版本，然后运行\mintinline{bash}|pixi install|安装即可。
+\end{itemize}
+    上述两种方式仅仅是声明“我要装这些包”，并不会真正安装这些包。
+
+    实际装包时，需要使用\mintinline{bash}|pixi install|实际的安装这些库。
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{pixi运行}
+
+    pixi的运行比较特殊，也有两种方式：
+\begin{itemize}
+    \item 直接运行：\mintinline{bash}|pixi run python main.py|，会自动激活环境并运行命令。
+    \item 进入shell：\mintinline{bash}|pixi shell|，进入一个新的shell，在这个shell里你就在pixi环境里了，直接运行\mintinline{bash}|python main.py|即可。运行完毕时，输入\mintinline{bash}|exit|退出这个shell。
+\end{itemize}
+    
+pixi不会有类似conda的环境提示符，换言之你的终端是永远处于系统环境里的，除非你进入pixi shell。这一点是非常好的设计，避免了conda常见的、因为乱装包导致的环境混乱问题。
+
+也正因此，不需要退出pixi环境，直接关闭终端就好了。
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{pixi环境导出}
+
+    pixi环境导出非常容易：
+\begin{minted}{bash}
+    pixi lock
+\end{minted}
+    以上命令将生成一个pixi.lock文件（如果没有的话），这个文件包含了当前环境中安装的所有库及其版本信息。接着，你需要把你的pixi.toml和pixi.lock文件和你的作业代码一起提交，这样TA才能正确安装你的环境。
+    
+    不lock也行，但这样只能安装出一个和你环境差不多的环境，可能会有一些细微的版本差异（那这样和conda就没什么区别了）。因此强烈建议lock。
+
+    \alert{不要提交\texttt{.pixi}目录下的任何文件，那是pixi给你装的库，哪有把库和代码一起提交的道理！}
+
+    从这两个文件安装环境只需要运行\mintinline{bash}|pixi install|即可，非常方便。
+\end{frame}
+
+\section{Nvidia和PyTorch}
+\begin{frame}
+    \sectionpage
+\end{frame}
+
+\begin{frame}
+    \frametitle{Pytorch}
+
+    Pytorch是目前最流行的深度学习框架之一，广泛应用于学术研究和工业界。本课程的作业也基于该框架（不会要求手搓numpy实现神经网络）。
+
+    首先你必须安装好Python和虚拟环境（conda或pixi），然后才能安装PyTorch。
+
+    PyTorch：\url{https://pytorch.org/}（可能需要科学上网）
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{根据Nvidia显卡安装Nvidia驱动、CUDA ToolKit和CUDNN}
+
+    从PyTorch 1.13.0开始，官方明确表示：PyTorch 二进制安装包已经包含了所需的 CUDA runtime 和 cuDNN 库，用户不再需要手动安装 CUDA Toolkit 或 cuDNN，只需确保系统中安装了兼容的 NVIDIA 驱动即可。
+
+    Nvidia驱动：访问\url{https://www.nvidia.com/Download/index.aspx}。
+
+    但旧的显卡产品或旧的库依然需要以下两项：
+
+    CUDA ToolKit：访问\url{https://developer.nvidia.com/cuda-downloads}。
+
+    CUDNN：访问\url{https://developer.nvidia.com/cudnn}。
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{根据Nvidia驱动安装PyTorch}
+
+    查看CUDA版本：
+\begin{minted}{bash}
+nvidia-smi
+\end{minted}
+    根据显示的CUDA版本，访问PyTorch官网的安装页面，选择适合你的系统和CUDA版本的安装命令，并在你的虚拟环境中运行该命令来安装PyTorch。
+
+    请安装Stable版本，不要安装Nightly版本，后者可能不稳定。
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{pixi和PyTorch}
+
+    Pixi用户需要手动编辑pixi.toml文件来安装PyTorch。首先查看你的CUDA版本，然后在pixi.toml文件找到对应的属性并添加：
+\begin{minted}{toml}
+[system-requirements]
+cuda = "12.8"
+
+[dependencies]
+python = 3.10
+pytorch-gpu = "*"
+cuda-version = "12.8.*"
+\end{minted}
+    以上配置将安装适用于CUDA 12.8的PyTorch GPU版本。请根据你的CUDA版本进行相应的修改。
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{验证安装}
+
+    为了验证PyTorch是否正确安装，可以在终端中运行以下命令：
+\begin{minted}{bash}
+python -c "import torch; print(torch.__version__)"
+\end{minted}
+    如果安装成功，你应该会看到PyTorch的版本号被打印出来。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{没有Nvidia显卡怎么办？}
+
+    Mac用户不必担心：PyTorch已经提供了对Apple Silicon的支持，直接安装就行。
+
+    如果你没有Nvidia显卡，你仍然可以安装CPU版本的PyTorch来完成作业。虽然没有GPU加速，但你仍然可以运行PyTorch代码，只是可能会比较慢。
+
+    另一种手段是去租赁云服务器，例如阿里云、腾讯云、AWS、autodl等，这些平台提供了带有GPU的虚拟机，你可以在上面安装PyTorch并运行你的代码。这同样会产生费用。
+
+    也有一些免费的云平台，例如Google Colab，提供了免费的GPU资源，你可以在上面运行你的PyTorch代码，但是大多需要排队或者有使用时间限制。
+
+\end{frame}
+
+\end{document}
