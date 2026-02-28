@@ -4,6 +4,7 @@
 \usepackage{fontspec}
 \usepackage{minted}
 \usepackage{graphicx}
+\usepackage{hyperref}
 
 % \setlength{\parindent}{2em}
 \setlength{\parskip}{0.5em}
@@ -24,6 +25,7 @@
     % url=false,
 }
 
+
 \setmainfont{Source Serif Pro}
 \setsansfont{Source Sans Pro}[Scale=MatchLowercase]
 \setmonofont{Source Code Pro}[Scale=MatchLowercase]
@@ -42,13 +44,34 @@
 \frame{\titlepage}
 
 \begin{frame}
+    \frametitle{本节上机概要}
+
+    本节课讲述的内容：
+    \begin{itemize}
+        \item Python的安装和使用。
+        \item 虚拟环境的安装和使用。
+        \item Python的基本语法，以及Numpy的基本使用。
+    \end{itemize}
+    如果你确信你已经掌握了这些内容，你不必听这节课，下一次上机再来听就行了。
+
+    本节默认同学们的水平接近零基础。
+
+    \alert{讲义很简略，是提示，不是详细说明。你一定要在我讲述和演示操作的时候跟着操作，一定要确保自己确实会操作！}
+
+    \alert{如果哪里听不懂或跟不上，务必及时提出！}
+
+\end{frame}
+
+\begin{frame}
     \frametitle{关于这门课的编程需求}
 
-    99\%的编程语言是Python，且往往需要使用GPU进行加速。
+    用到的99\%编程语言是Python3，且往往需要使用GPU进行加速。
 
     因此非常建议同学们使用GPU来完成作业，非常不建议用轻薄本运行作业，除非你不介意等待很长时间。
 
     稍后会说明如何在没有自己的GPU的情况下完成作业。
+
+    第一次作业不需要GPU也能完成。
 
 \end{frame}
 
@@ -58,58 +81,62 @@
 \end{frame}
 
 \begin{frame}
-    \frametitle{安装Python}
+    \frametitle{Python简介}
 
-    对于Windows用户，敬请忽略这一步。
-    
-    如果确实需要，访问\url{https://www.python.org/downloads/}下载并安装Python。
-    
-    \alert{但是不很建议这么做。}这是因为Windows环境管理比较复杂，一般使用WSL或者Anaconda会好些。
+    Python是一个简单易学的编程语言，广泛应用于多种领域，有蓬勃的第三方生态，所以在多个领域有着重要的地位。AI领域也不例外，Python是AI领域的主流编程语言之一（其余还有R、C/C++、Julia等）。
 
-    对于Linux、MacOS用户，系统中要是没有Python那系统也跑不了了，一般来说系统中都会预装Python。
+    与C/C++不同，Python是一种解释型语言，不需要编译，直接运行即可。不过也因此需要特定的解释器来执行Python代码。
+
+    Python官网：\url{https://www.python.org/}
+
+    \alert{不要立即从上述官网下载安装Python！}
 
 \end{frame}
 
 \begin{frame}
-    \frametitle{虚拟环境的必要性}
+    \frametitle{虚拟环境简介}
 
+    正因为Python的第三方生态非常丰富，所以在不同的项目中可能需要安装不同的第三方库，甚至同一个库的不同版本。为了避免不同项目之间的依赖冲突，我们需要隔离不同项目的依赖。另，分发项目时，也需要让其余人能够复现项目的环境，以便能够正确运行项目。
+
+    故而，引入\textbf{虚拟环境}。
+
+    虚拟环境一般可以隔离不同的：
     \begin{itemize}
-        \item 依赖管理：不同项目可能需要不同版本的库，虚拟环境可以隔离这些依赖，避免冲突。
-        \item 环境隔离：每个虚拟环境都是独立的，可以在同一台机器上同时运行多个项目，而不会互相干扰。
-        \item 便于部署：虚拟环境可以打包项目所需的所有依赖，方便在不同环境中部署和运行。\alert{或者说，方便TA批作业时安装依赖。}
+        \item 编译器或解释器版本；
+        \item 第三方库及其版本；
+        \item 系统级别依赖。
     \end{itemize}
 
-    我提出两个方案：conda+pip和pixi。请务必使用其中一种方案来管理你的Python环境，并在提交作业时附上相应的环境配置文件，否则TA可能无法正确安装依赖并运行你的代码，由此导致的作业分数降低将由你自己承担。
-    
 \end{frame}
 
 \begin{frame}
-    \frametitle{conda+pip（基础情形）}
+    \frametitle{虚拟环境管理工具}
 
-    conda是数据科学领域最传统、最老大哥的包管理器和环境管理器，分为Anaconda和Miniconda两种版本。Anaconda包含了大量预装的科学计算库，而Miniconda则是一个轻量级的版本，用户可以根据需要安装所需的库。
-    
-    这两个挑一个安装即可。我个人建议安装Miniconda，因为它更轻量，安装后可以根据需要安装所需的库，而不会占用过多的磁盘空间。
+    一般情况下，我们会使用一些工具来管理虚拟环境，常见的有：venv、conda（Anaconda、Miniconda、Mamba、Micromamba等）、pixi等。
 
-    conda最大的问题是慢，所以用pip辅助安装一些库是很常见的做法。
+    这节课，我们主要聚焦于conda。
 
-    \url{https://docs.conda.io/projects/conda/en/23.11.x/user-guide/install/download.html}
+    理由：开山鼻祖，库多而全，技术成熟，文档完善，使用广泛。
 
-    \alert{conda是免费软件。如果你发现你需要付费，那说明你被骗了！}
-    
+    缺陷：慢，且不能100\%隔离系统级别依赖，也不能100\%复现环境，且环境和项目分离。不过在这门课基本够用了。
+
 \end{frame}
 
 \begin{frame}
     \frametitle{安装conda}
 
-    安装conda时，\textbf{务必把conda添加到系统环境变量中}，否则你将无法在命令行中使用conda命令。
+    比较建议安装简单的Miniconda，比较轻量。有兴趣的同学可以安装Micromamba，速度更快。
 
-    访问上一页提供的URL，下载适合你系统的Anaconda或Miniconda安装包并运行安装程序。
+    \url{https://docs.conda.io/projects/conda/en/23.11.x/user-guide/install/download.html}
 
-    不建议Linux和MacOS用户使用包管理器安装conda，可能遇到各种各样难以言明的问题。
+    \alert{conda是免费软件。如果你发现你需要付费，那说明你被骗了！}
 
-    运行完毕后，打开一个新的命令行窗口，输入\mintinline{bash}|conda --version|来验证安装是否成功。如果显示conda的版本号，说明安装成功了。
+    \textbf{务必在安装过程中勾选“添加到PATH环境变量”选项！}否则会非常麻烦地需要手动添加环境变量。
+
+    可以使用命令\mintinline{bash}|conda --version|来验证安装是否成功。
 
 \end{frame}
+
 
 \begin{frame}
     \frametitle{换源（非常重要！！！）}
@@ -126,248 +153,366 @@
 
 \end{frame}
 
-\begin{frame}[fragile]
-    \frametitle{创建conda虚拟环境}
+\begin{frame}
+    \frametitle{conda环境的使用}
 
-    创建一个新的conda虚拟环境：
+    创建环境：\mintinline{bash}|conda create -n myenv python=3.10|
 
-\begin{minted}{bash}
-conda create -n myenv python=3.10
-\end{minted}
+    进入环境：\mintinline{bash}|conda activate myenv|
 
-    以上命令：
-    \begin{itemize}
-        \item \mintinline{bash}|create|：创建一个新的conda虚拟环境
-        \item \mintinline{bash}|-n myenv|：创建名为myenv的虚拟环境
-        \item \mintinline{bash}|python=3.10|：指定Python版本为3.10
-    \end{itemize}
+    退出环境：\mintinline{bash}|conda deactivate|
 
-\end{frame}
+    删除环境：\mintinline{bash}|conda remove -n myenv --all|
 
-\begin{frame}[fragile]
-    \frametitle{激活conda虚拟环境}
-
-    激活虚拟环境：
-\begin{minted}{bash}
-conda activate myenv
-\end{minted}
-    以上命令将激活名为myenv的虚拟环境。激活后，你可以在该环境中安装所需的库并运行你的Python代码。你的命令行提示符通常会显示当前激活的环境名称，以便你知道你正在使用哪个环境。
-
+    你的命令行通常会显示当前激活的环境名称，以便你知道你正在使用哪个环境。
     \begin{figure}
         \centering
-        \includegraphics[width=0.8\textwidth]{env.png}
+        \includegraphics[width=0.5\textwidth]{env.png}
     \end{figure}
-    
-\end{frame}
-
-\begin{frame}[fragile]
-    \frametitle{安装库}
-
-    在激活的虚拟环境中，你可以使用pip安装所需的库：
-
-\begin{minted}{bash}
-pip install numpy pandas matplotlib
-\end{minted}
-
-    以上命令将安装numpy、pandas和matplotlib库。
-
-    \alert{不要用conda直接装库，那样过时了。}
-
-    \alert{装库之前，务必确认自己的库装在哪里。不建议在系统环境里装任何库，不建议在base环境里装大库（比如torch）！}
-
-\end{frame}
-
-\begin{frame}[fragile]
-    \frametitle{环境导出}
-
-    为了方便他人复现你的环境，你可以导出当前虚拟环境的配置文件。
-
-    导出环境配置文件：
-\begin{minted}{bash}
-pip freeze > requirements.txt
-\end{minted}
-
-    以上命令将导出当前pip环境中安装的所有库及其版本信息到requirements.txt文件中。其他人可以使用这个文件来安装相同的环境：
-\begin{minted}{bash}
-pip install -r requirements.txt
-\end{minted}
-
-\alert{请务必在提交作业时，将requirements.txt文件和你的代码一同提交！}
-
-\end{frame}
-
-\begin{frame}[fragile]
-    \frametitle{离开虚拟环境}
-
-    当你完成工作后，可以使用以下命令离开当前虚拟环境：
-
-    离开虚拟环境：
-\begin{minted}{bash}
-conda deactivate
-\end{minted}
-    以上命令将退出当前激活的虚拟环境，返回到系统的默认环境（取决于你的设置：可能是base环境，也可能是没有任何环境）。
 
 \end{frame}
 
 \begin{frame}
-    \frametitle{pixi（进阶情形）}
+    \frametitle{pip的使用}
 
-    pixi是一个相对较新的Python包管理器和环境管理器，旨在提供更快的安装速度和更简洁的用户体验。它使用了现代化的包管理技术，能够更高效地解决依赖关系，并且支持多平台。
+    pip是Python的包管理工具，可以用来安装和管理Python包。conda环境中也可以使用pip来安装包。这是因为conda太慢了，环境一大，解析起来就更慢了，所以我们通常使用pip来安装包。
 
-    pixi和conda相比有以下好处：
+    安装包：\mintinline{bash}|pip install package_name|
+
+    升级包：\mintinline{bash}|pip install --upgrade package_name|
+
+    卸载包：\mintinline{bash}|pip uninstall package_name|
+    
+    列出已安装的包：\mintinline{bash}|pip list|
+
+    导出到文件：\mintinline{bash}|pip freeze > requirements.txt|
+
+    从文件装包：\mintinline{bash}|pip install -r requirements.txt|
+
+    交作业时请一定要提供这个requirements.txt文件，以便助教能够复现你的环境。\textbf{因未提交该文件而导致环境无法复现的，可能造成扣分！}
+\end{frame}
+
+\begin{frame}
+    \frametitle{关于Code}
+
+    较为著名的Python IDE：JB Pycharm。问题：臃肿。
+
+    Python自带的IDE：Python IDLE。问题：功能过于简单，且不太好用。
+
+    建议使用轻量级的文本编辑器，如VS Code、Vim（NeoVim）、Notepad（Notepad++）、Sublime Text、Atom等。这些编辑器提供了丰富的插件和功能，可以提高编程效率。
+
+    个人推荐VS Code，功能强大且免费，社区活跃，插件丰富，支持多种编程语言和工具。
+
+    \url{https://code.visualstudio.com/}，选择System Installer版本（而非User Installer版本），安装时勾选“Add to PATH”选项。
+
+    \alert{VS Code是免费软件。如果你发现你需要付费，那说明你被骗了！}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{配置Code}
+
+    安装以下插件：Python，Python Debugger，Python Environments，Pylance。
+
+    英语苦手的同学可以安装Chinese (Simplified) Language Pack for Visual Studio Code插件来将VS Code界面翻译成中文。
+
+    你会在界面右下角见到一个“选择解释器”的选项。如果你的系统里有Python解释器或你安装了conda，你就会在这里看到系统解释器或conda环境的解释器。你可以选择其中一个作为VS Code的默认解释器，这样在VS Code中运行Python代码时就会使用这个解释器了。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{Python基本使用}
+
+    在命令行中输入\mintinline{bash}|python|，就进入了Python的交互式环境，可以直接输入Python代码进行测试和调试。
+
+    输入\mintinline{bash}|exit()|或按Ctrl+D可以退出Python交互式环境。
+
+    如欲运行某代码code.py文件，可以在命令行中输入\mintinline{bash}|python code.py|来执行该文件中的代码。
+
+    若你安装了Code，你可以在Code中打开code.py文件，然后按F5或点击运行按钮来运行该文件中的代码。
+
+    你可以在代码的行号处打断点，然后按F5或点击调试按钮来调试代码，这样就可以逐行执行代码，查看变量的值，分析代码的执行流程了。
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Python语法}
+
+    与C++这种静态类型语言不同，Python是一种动态类型语言。虽然依然需要遵循先声明、再使用的原则，但不需要声明变量的类型，变量的类型会在运行时自动推断。
+    \begin{minted}{python}
+x = 10 # 实际上这就是个声明，声明x并赋值。
+print(x)  # 输出: 10
+x = "Hello, World!" 
+print(x)  # 输出: Hello, World!
+    \end{minted}
+
+    Python的内置类型包括：int（整数）、float（浮点数）、str（字符串）、bool（布尔值）、list（列表）、tuple（元组）、dict（字典）、set（集合）、None（空值）等。Python3.8以后允许写类型注释，即\mintinline{python}|x: int = 10|，但这只是注释，并不会真正限制变量的类型。Pylance插件会根据类型注释提供极其有限的类型检查和智能提示。
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Python语法(2)}
+
+    所以在C++中的加减乘除（单双目）、与或非、大小等、赋值在Python中也适用，但Python还支持一些额外的运算符，如幂运算符\texttt{**}、取模运算符\texttt{\%}、整除运算符\texttt{//}等。
+
+    需要注意的是，在Python中，5/2==2.5，而不是2。这是因为Python中的除法运算符\texttt{/}总是返回一个浮点数结果。如果你想要像C++一样得到整数结果，可以使用整除运算符\texttt{//}，即5//2==2。
+
+    Python没有自增自减运算符，也没有取地址运算符。
+
+    Python用井号\texttt{\#}来表示注释，直接在代码行前加\texttt{\#}即可。
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Python语法(3)}
+
+    Python中的条件语句使用\texttt{if}、\texttt{elif}和\texttt{else}来实现，功能和使用基本上与C++中的条件语句相同，但Python使用冒号和缩进来表示代码块，而不是花括号。\textbf{Python中的缩进重要且严格，必须使用一致的缩进方式（通常是4个空格）来表示代码块，否则会导致语法错误。}
+
+    \begin{minted}{python}
+    if x == 2: # 必须换行并缩进
+        print("x is 2")
+    elif x > 2:
+        print("x is greater than 2")
+    else:
+        print("x is less than 2")
+    \end{minted}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Python语法(4)}
+
+    Python中循环有两种：\texttt{while}循环（和C++中的while类似）和\texttt{for}循环（和C++中的range-for类似）。
+    \begin{minted}{python3}
+        while x > 0:
+            print(x)
+            x -= 1
+    \end{minted}
+
+    Python的for循环可以直接迭代任何可迭代对象，如列表、字符串、字典等，非常方便。
+    \begin{minted}{python3}
+        for i in range(5):  # range(5)生成一个可迭代对象，包含0到4的整数
+            print(i)
+    \end{minted}
+    需要说明的是，\mintinline{python3}|range(5)|实际上是一个生成器对象，指的是0到5的整数序列（不包含5），而不是一个列表。
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{复合数据类型}
+    Python中的复合数据类型包括列表（list）、元组（tuple）、字典（dict）和集合（set）。这些数据类型可以存储多个值，并且支持各种操作，如添加、删除、访问等。
+
+    \begin{minted}{python3}
+l: list[int] = [1, 2, 3]  # 列表，有序可更改
+t: tuple[int, int, int] = (1, 2, 3)  # 元组，有序不可更改
+d: dict[str, int] = {"a": 1, "b": 2}  # 字典，键值对，无序可更改
+s: set[int] = {1, 2, 3}  # 集合，无序不重复可更改
+    \end{minted}
+
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{复合数据类型的操作}
+
+    操作类似C++的STL。以list为例：
+    \begin{minted}{python3}
+        l.append(4)  # 添加元素
+        l.remove(2)  # 删除元素
+        l.sort()  # 排序
+        l.reverse()  # 反转
+        l.clear()  # 清空
+        l.insert(1, 5)  # 在索引1处插入元素5
+    \end{minted}
+    但是区别是，Python的这些复合数据类型都是可以直接打印的，且打印出来的格式非常友好，方便调试和展示。
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{复合数据类型的高级技巧：切片和推导式}
+
+    切片（slicing）是Python中一种非常强大的功能，可以用来获取列表、元组、字符串等序列的一部分。切片的语法是\texttt{sequence[start:stop:step]}，其中\texttt{start}是起始索引，\texttt{stop}是结束索引（不包含），\texttt{step}是步长（可以为负数）。例如：
+
+    列表推导式（list comprehension）是一种简洁的语法，可以用来创建新的列表。它的基本语法是\texttt{[expression for item in iterable if condition]}，其中\texttt{expression}是生成新列表元素的表达式，\texttt{item}是迭代器中的每个元素，\texttt{iterable}是一个可迭代对象，\texttt{condition}是一个可选的条件表达式。
+
+    实际上，列表推导式不仅可以用来生成列表，还可以用来生成其他类型的集合，如字典推导式（dictionary comprehension）和集合推导式（set comprehension）。
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{函数}
+
+    Python中函数的定义使用\texttt{def}关键字，后跟函数名和参数列表。例如：
+    \begin{minted}{python3}
+def add(a: int, b: int) -> int: # 这里的三个int都是类型注释，实际并不限制参数和返回值的类型。
+# def add(a, b):  # 也可以不写类型注释
+    return a + b
+    \end{minted}
+    需要注意的是，Python中的函数参数可以有默认值，也可以是可变参数，这些都是Python函数的高级特性，可以提高函数的灵活性和可用性。
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{面向对象}
+
+    Python是一种面向对象的编程语言，支持类和对象的概念。你可以使用\texttt{class}关键字来定义一个类，然后创建该类的实例（对象）来使用它。例如：
+    \begin{minted}{python3}
+class Person:
+    def __init__(self, name: str, age: int):
+        self.name = name  # 实例变量
+        self.age = age
+    def greet(self):
+        print(f"Hello, my name is {self.name} and I am {self.age} years old.")
+    \end{minted}
+    在这个例子中，我们定义了一个名为\texttt{Person}的类，它有一个构造函数\texttt{\_\_init\_\_}，用于初始化实例变量\texttt{name}和\texttt{age}，还有一个方法\texttt{greet}，用于打印一个问候语。
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{类的实例化}
+
+    可以通过创建\texttt{Person}类的实例来使用上文中提到的类，例如：
+    \begin{minted}{python3}
+person1 = Person("Alice", 30)
+person1.greet()  # 输出: Hello, my name is Alice and I am 30 years old.
+    \end{minted}
+    故而我们刚刚这种调用\mintinline{python3}|l.append(4)|的方式，其实就是在调用list类的append方法。
+    
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{模块和包}
+
+    你可以使用\texttt{import}语句来导入模块或包。例如：
+    \begin{minted}{python3}
+import math  # 导入math模块
+from math import sqrt  # 从math模块导入sqrt函数
+from math import *  # 从math模块导入所有函数和变量
+    \end{minted}
+    需要注意的是，使用\texttt{from module import *}会将模块中的所有函数和变量导入到当前命名空间，可能会导致命名冲突，因此不建议使用这种方式导入模块。
+\end{frame}
+
+\begin{frame}
+    \frametitle{Numpy简介}
+
+    Numpy是Python中一个非常重要的科学计算库，提供了高效的多维数组对象和丰富的数学函数，可以用来进行各种数值计算和数据分析。Numpy的核心数据结构是ndarray（n维数组），它可以存储大量的数据，并且支持各种操作，如切片、广播、线性代数等。
+
+    我们的第一次作业需要用到Numpy做手写梯度回传，所以建议同学们提前安装好Numpy库，并且熟悉一下它的基本用法。
+
+    安装略，见前文pip的使用。
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Numpy的基本使用}
+
+    导入Numpy库：\mintinline{python3}|import numpy as np|。一般不会把该别名改成其他的，这已经成为了一个约定俗成的习惯。
+
+    Numpy最重要的对象是ndarray，可以通过\texttt{np.array()}函数来创建一个ndarray。例如：
+    \begin{minted}{python3}
+import numpy as np
+a = np.array([1, 2, 3])  # 创建一个一维数组
+b = np.array([[1, 2], [3, 4]])  # 创建一个二维数组
+    \end{minted}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{向量化操作}
+
+    Numpy的一个重要特性是支持向量化操作，即可以对整个数组进行操作，而不需要使用循环。这使得代码更加简洁和高效。
+
+    这包括三项内容：
     \begin{itemize}
-        \item 快。
-        \item 契约精神：提供一个环境配置文件，别人就能安装出完全一样的环境，100\%复现。
-        \item 环境和项目绑定：删除项目，环境自然被删除，不会出现conda常见的环境垃圾问题。
+        \item 广播（broadcasting）：当对不同形状的数组进行操作时，Numpy会自动进行广播，使得它们具有相同的形状。
+        \item 通用函数（ufuncs）：Numpy提供了一些通用函数，可以对数组进行元素级的操作，如\texttt{np.add()}、\texttt{np.multiply()}等。
+        \item 切片（slicing）：Numpy支持对数组进行切片操作，可以获取数组的一部分或修改数组的某些元素。
     \end{itemize}
-
-    Windows用户访问：\url{https://pixi.prefix.dev/latest/installation/}
-
-    Linux和MacOS用户建议用包管理器安装。
-
-    \alert{pixi也是免费软件。如果你发现你需要付费，那说明你被骗了！}
-\end{frame}
-
-\begin{frame}[fragile]
-    \frametitle{创建pixi虚拟环境}
-
-    创建一个新的pixi虚拟环境：
-\begin{minted}{bash}
-pixi init
-\end{minted}
-    这样仅初始化了一个新的pixi项目，没有安装任何东西（甚至包括Python）。
-
-    需要说明：pixi管理库的下载源是PyPI，换源方式和pip完全一致。具体操作往前翻。
-
-\end{frame}
-
-\begin{frame}[fragile]
-    \frametitle{pixi装包}
-
-    接下来有两种手段装包：
-\begin{itemize}
-    \item 直接装包：\mintinline{bash}|pixi add numpy pandas matplotlib|，会自动安装Python和这些库。
-    \item 编辑配置文件：pixi的环境配置文件是pixi.toml，直接编辑这个文件，添加你需要的库和版本，然后运行\mintinline{bash}|pixi install|安装即可。
-\end{itemize}
-    上述两种方式仅仅是声明“我要装这些包”，并不会真正安装这些包。
-
-    实际装包时，需要使用\mintinline{bash}|pixi install|实际的安装这些库。
-
-\end{frame}
-
-\begin{frame}[fragile]
-    \frametitle{pixi运行}
-
-    pixi的运行比较特殊，也有两种方式：
-\begin{itemize}
-    \item 直接运行：\mintinline{bash}|pixi run python main.py|，会自动激活环境并运行命令。
-    \item 进入shell：\mintinline{bash}|pixi shell|，进入一个新的shell，在这个shell里你就在pixi环境里了，直接运行\mintinline{bash}|python main.py|即可。运行完毕时，输入\mintinline{bash}|exit|退出这个shell。
-\end{itemize}
     
-pixi不会有类似conda的环境提示符，换言之你的终端是永远处于系统环境里的，除非你进入pixi shell。这一点是非常好的设计，避免了conda常见的、因为乱装包导致的环境混乱问题。
+\end{frame}
 
-也正因此，不需要退出pixi环境，直接关闭终端就好了。
+\begin{frame}[fragile]
+    \frametitle{实例：快速操作数组}
+
+    现在要对数组进行Leaky ReLU。传统的做法是利用列表推导式或循环，但这样效率较低。利用Numpy的向量化操作，我们可以直接对整个数组进行操作，代码如下：
+    \begin{minted}{python3}
+import numpy as np
+def leaky_relu(x):
+    return np.where(x > 0, x, 0.01 * x)
+x = np.array([-1, 0, 1, 2, 3])
+y = leaky_relu(x)
+print(y)  # 输出: [-0.01  0.    1.    2.    3.  ]
+    \end{minted}
+    这样就可以快速地对整个数组进行Leaky ReLU操作了，而不需要使用循环来逐个元素进行操作，运行起来比循环和列表推导式更快。
 
 \end{frame}
 
 \begin{frame}[fragile]
-    \frametitle{pixi环境导出}
+    \frametitle{实例：通用函数}
 
-    pixi环境导出非常容易：
-\begin{minted}{bash}
-    pixi lock
-\end{minted}
-    以上命令将生成一个pixi.lock文件（如果没有的话），这个文件包含了当前环境中安装的所有库及其版本信息。接着，你需要把你的pixi.toml和pixi.lock文件和你的作业代码一起提交，这样TA才能正确安装你的环境。
+    除了\mintinline{python3}|np.where|这样的通用函数外，Numpy还提供了许多其他通用函数，如\mintinline{python3}|np.add|、\mintinline{python3}|np.multiply|等。这些函数可以对数组进行元素级的操作，从而避免使用循环来逐个元素进行操作。例如：
+    \begin{minted}{python3}
+import numpy as np
+a = np.array([1, 2, 3])
+b = np.array([4, 5, 6])
+c = np.add(a, b)  # 对应元素相加
+d = np.multiply(a, b)  # 对应元素相乘
+print(c)  # 输出: [5 7 9]
+print(d)  # 输出: [ 4 10 18]
+    \end{minted}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{切片}
+
+    Numpy支持对数组进行切片操作，可以获取数组的一部分或修改数组的某些元素。例如：
+    \begin{minted}{python3}
+import numpy as np
+a = np.array([1, 2, 3, 4, 5])
+print(a[1:4])  # 输出: [2 3 4]
+print(a[:3])   # 输出: [1 2 3]
+print(a[2:])   # 输出: [3 4 5]
+    \end{minted}
+    这里的切片和Python内置的切片语法是一样的，但返回的是原数组，不是拷贝，所以修改切片会修改原数组。例如：
+    \begin{minted}{python3}
+import numpy as np
+a = np.array([1, 2, 3, 4, 5])
+a[1:4] = [0, 0, 0]  # 将索引1到3的元素修改为0
+print(a)  # 输出: [1 0 0 0 5]
+    \end{minted}
     
-    不lock也行，但这样只能安装出一个和你环境差不多的环境，可能会有一些细微的版本差异（那这样和conda就没什么区别了）。因此强烈建议lock。
-
-    \alert{不要提交\texttt{.pixi}目录下的任何文件，那是pixi给你装的库，哪有把库和代码一起提交的道理！}
-
-    从这两个文件安装环境只需要运行\mintinline{bash}|pixi install|即可，非常方便。
-\end{frame}
-
-\section{Nvidia和PyTorch}
-\begin{frame}
-    \sectionpage
-\end{frame}
-
-\begin{frame}
-    \frametitle{Pytorch}
-
-    Pytorch是目前最流行的深度学习框架之一，广泛应用于学术研究和工业界。本课程的作业也基于该框架（不会要求手搓numpy实现神经网络）。
-
-    首先你必须安装好Python和虚拟环境（conda或pixi），然后才能安装PyTorch。
-
-    PyTorch：\url{https://pytorch.org/}（可能需要科学上网）
-
-\end{frame}
-
-\begin{frame}
-    \frametitle{根据Nvidia显卡安装Nvidia驱动、CUDA ToolKit和CUDNN}
-
-    从PyTorch 1.13.0开始，官方明确表示：PyTorch 二进制安装包已经包含了所需的 CUDA runtime 和 cuDNN 库，用户不再需要手动安装 CUDA Toolkit 或 cuDNN，只需确保系统中安装了兼容的 NVIDIA 驱动即可。
-
-    Nvidia驱动：访问\url{https://www.nvidia.com/Download/index.aspx}。
-
-    但旧的显卡产品或旧的库依然需要以下两项：
-
-    CUDA ToolKit：访问\url{https://developer.nvidia.com/cuda-downloads}。
-
-    CUDNN：访问\url{https://developer.nvidia.com/cudnn}。
-
 \end{frame}
 
 \begin{frame}[fragile]
-    \frametitle{根据Nvidia驱动安装PyTorch}
-
-    查看CUDA版本：
-\begin{minted}{bash}
-nvidia-smi
-\end{minted}
-    根据显示的CUDA版本，访问PyTorch官网的安装页面，选择适合你的系统和CUDA版本的安装命令，并在你的虚拟环境中运行该命令来安装PyTorch。
-
-    请安装Stable版本，不要安装Nightly版本，后者可能不稳定。
-
-\end{frame}
-
-\begin{frame}[fragile]
-    \frametitle{pixi和PyTorch}
-
-    Pixi用户需要手动编辑pixi.toml文件来安装PyTorch。首先查看你的CUDA版本，然后在pixi.toml文件找到对应的属性并添加：
-\begin{minted}{toml}
-[system-requirements]
-cuda = "12.8"
-
-[dependencies]
-python = 3.10
-pytorch-gpu = "*"
-cuda-version = "12.8.*"
-\end{minted}
-    以上配置将安装适用于CUDA 12.8的PyTorch GPU版本。请根据你的CUDA版本进行相应的修改。
-
-\end{frame}
-
-\begin{frame}[fragile]
-    \frametitle{验证安装}
-
-    为了验证PyTorch是否正确安装，可以在终端中运行以下命令：
-\begin{minted}{bash}
-python -c "import torch; print(torch.__version__)"
-\end{minted}
-    如果安装成功，你应该会看到PyTorch的版本号被打印出来。
+    \frametitle{广播}
+    广播是Numpy中一个非常强大的功能，当对不同形状的数组进行操作时，Numpy会自动进行广播，使得它们具有相同的形状。例如：
+    \begin{minted}{python3}
+import numpy as np
+a = np.array([1, 2, 3])
+b = np.array([[1], [2], [3]])
+c = a + b  # 广播a和b，使它们具有相同的形状
+print(c)  # 输出: [[2 3 4]
+          #       [3 4 5]
+          #       [4 5 6]]
+    \end{minted}
+    这个实例看起来令人难以理解。根据广播规则，a会被广播成一个3行3列的数组，每行都是[1, 2, 3]，b会被广播成一个3行3列的数组，每列都是[1, 2, 3]，然后进行对应元素相加，得到结果c。
 
 \end{frame}
 
 \begin{frame}
-    \frametitle{没有Nvidia显卡怎么办？}
+    \frametitle{Numpy练习}
 
-    Mac用户不必担心：PyTorch已经提供了对Apple Silicon的支持，直接安装就行。
+    试着对一个ndarray实现：
+    \begin{itemize}
+        \item ReLU
+        \item Leaky ReLU
+        \item Sigmoid
+        \item Tanh
+    \end{itemize}
+    并对其进行反向传播（即求导）。
 
-    如果你没有Nvidia显卡，你仍然可以安装CPU版本的PyTorch来完成作业。虽然没有GPU加速，但你仍然可以运行PyTorch代码，只是可能会比较慢。
-
-    另一种手段是去租赁云服务器，例如阿里云、腾讯云、AWS、autodl等，这些平台提供了带有GPU的虚拟机，你可以在上面安装PyTorch并运行你的代码。这同样会产生费用。
-
-    也有一些免费的云平台，例如Google Colab，提供了免费的GPU资源，你可以在上面运行你的PyTorch代码，但是大多需要排队或者有使用时间限制。
+    该练习不参与考核，但强烈建议同学们完成，以便更好地理解Numpy的使用和神经网络中的激活函数及其导数。
 
 \end{frame}
 
