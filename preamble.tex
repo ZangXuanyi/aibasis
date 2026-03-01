@@ -1,0 +1,40 @@
+
+\usepackage[fontset=none]{ctex}
+\usepackage{fontspec}
+\usepackage{minted}
+\usepackage{graphicx}
+\usepackage{hyperref}
+
+% \setlength{\parindent}{2em}
+\setlength{\parskip}{0.5em}
+
+\setminted{
+    fontsize=\small,           % 字体大小
+    baselinestretch=1.0,       % 行间距
+    linenos=true,              % 行号
+    frame=lines,               % 边框样式
+    framesep=2mm,              % 边框间距
+    rulecolor=\color{black},   % 边框颜色
+    numbersep=5pt,             % 行号间距
+    breaklines=true,           % 自动换行
+    breakanywhere=false,       % 不在任意位置断行
+    showspaces=false,          % 不显示空格
+    showtabs=false,            % 不显示制表符
+    tabsize=4,                 % 制表符大小
+    % url=false,
+}
+
+
+\setmainfont{Source Serif Pro}
+\setsansfont{Source Sans Pro}[Scale=MatchLowercase]
+\setmonofont{Source Code Pro}[Scale=MatchLowercase]
+\setCJKmainfont[ItalicFont = * ]{Source Han Serif CN}
+\setCJKsansfont[ItalicFont = * ]{Source Han Sans CN}
+\setCJKmonofont[ItalicFont = * ]{Source Han Sans CN}
+
+\usetheme{Berlin}
+\usefonttheme{serif}
+
+\title{《AI基础》课程编程指南}
+\author{臧炫懿}
+\date{\today}
