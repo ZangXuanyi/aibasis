@@ -1,0 +1,208 @@
+\section{Numpy}
+
+\begin{frame}
+    \frametitle{Numpy简介}
+
+    Numpy是Python中一个非常重要的科学计算库，提供了高效的多维数组对象和丰富的数学函数，可以用来进行各种数值计算和数据分析。Numpy的核心数据结构是ndarray（n维数组），它可以存储大量的数据，并且支持各种操作，如切片、广播、线性代数等。
+
+    我们的第一次作业需要用到Numpy做手写梯度回传，所以建议同学们提前安装好Numpy库，并且熟悉一下它的基本用法。
+
+    安装略，见前文pip的使用。
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Numpy的最重要特性：向量化操作}
+
+    Numpy的一个重要特性是支持向量化操作，即可以对整个数组进行操作，而不需要使用循环。这使得代码更加简洁和高效。
+
+    这包括三项内容：
+    \begin{itemize}
+        \item 切片（slicing）：Numpy支持对数组进行切片操作，可以获取数组的一部分或修改数组的某些元素。
+            \item 通用函数（ufuncs）：Numpy提供了一些通用函数，可以对数组进行元素级的操作，如 \mintinline{python}{np.add()} 、\mintinline{python}{np.multiply()}等。
+        \item 广播（broadcasting）：当对不同形状的数组进行操作时，Numpy会自动进行广播，使得它们具有相同的形状。
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Numpy的基本使用}
+
+    导入Numpy库： \mintinline{python}|import numpy as np| 。一般不会把该别名改成其他的，这已经成为了一个约定俗成的习惯。
+
+    Numpy最重要的对象是ndarray，可以通过 \mintinline{python}{np.array()} 函数来创建一个ndarray。例如：
+    \begin{minted}{python}
+import numpy as np
+a = np.array([1, 2, 3])  # 创建一个一维数组
+b = np.array([[1, 2], [3, 4]])  # 创建一个二维数组
+print(a)
+print(b.shape)  # 输出数组的形状，这里是(2, 2)
+    \end{minted}
+    数组形状是很有用的信息，必然是一个tuple。
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{索引和切片}
+
+    Numpy数组的索引和切片与Python内置的列表类似，但支持更多的功能，如多维切片索引、布尔索引等。但是该切片返回的是原来数组的一个视图，而不是一个新的数组，所以修改切片会修改原来的数组。
+    \begin{minted}{python}
+import numpy as np
+a = np.array([[1, 2], [3, 4]])
+print(a[0][1])  # 和Python列表一样，输出: 2，访问第一行第二列的元素
+print(a[0, 1])  # 多维点索引，输出: 2，访问第一行第二列的元素
+print(a[:, 0])  # 多维切片索引，访问所有行的第一列，输出: [1 3]
+print(a[a > 2])  # 布尔索引，访问所有大于2的元素
+    \end{minted}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{切片索引的方法（非常重要）}
+
+    \mintinline{python}|a[:, 0]|逗号前的部分表示行索引，逗号后的部分表示列索引，所以 \mintinline{python}|a[:, 0]| 就是选择所有行的第一列。同理： \mintinline{python3}|a[0:2, 0:2]| 就是选择前两行和前两列的元素，得到一个新的二维数组；甚至这里也允许“步长”，比如\mintinline{python3}|a[::2, ::2]| 就是以2为步长选择所有行和列中索引为偶数的元素，得到一个新的二维数组。
+
+    所以实际上我们发现，Numpy的切片索引方式实际上相当于Python的切片方式的扩展：逗号分隔的每一个切片语句，实际上都是对该维度的切片操作。但不同的是，Numpy切片必须保证起始索引比结束索引更小，否则报错（而不是得到一个空数组）。
+
+    在后面会有图示。
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{实例：快速操作数组}
+
+    现在要对一个数组进行函数：$f(x) = 2x + 1$。传统的做法是利用循环来逐个元素进行操作，但这样效率较低。利用Numpy的向量化操作，我们可以直接对整个数组进行操作，运行起来比循环更快。
+
+    \begin{minted}{python}
+import numpy as np
+x = np.array([1, 2, 3, 4, 5])
+y = 2 * x + 1  # 向量化操作，对整个数组进行计算
+print(y)  # 输出: [ 3  5  7  9 11]
+    \end{minted}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{实例：快速操作数组（带条件的）}
+
+    现在要对数组进行Leaky ReLU。这个是一个带有条件的数组操作，我们可以使用Numpy的 \mintinline{python}{np.where()} 函数来实现这个操作。
+
+    \begin{minted}{python}
+import numpy as np
+x = np.array([-1, 0, 1, 2, 3])
+y = np.where(x > 0, x, 0.01 * x)  # 使用np.where进行条件操作
+print(y)  # 输出: [-0.01  0.    1.    2.    3.  ]
+    \end{minted}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{实例：通用函数}
+
+    Numpy提供了许多其他通用函数，这些函数可以对数组进行元素级的操作，从而避免使用循环来逐个元素进行操作。
+
+    \begin{minted}{python}
+import numpy as np
+a = np.array([1, 2, 3])
+b = np.array([4, 5, 6])
+c = np.add(a, b)  # 对应元素相加
+d = np.multiply(a, b)  # 对应元素相乘
+e = np.dot(a, b)  # 向量点积
+f = np.cross(a, b)  # 向量叉积
+g = np.sin(a)  # 对每个元素取正弦
+h = np.exp(a)  # 对每个元素取指数
+# 还有很多其他的通用函数
+    \end{minted}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{广播}
+    广播是Numpy中一个非常强大的功能，当对不同形状的数组进行操作时，Numpy会自动进行广播，使得它们具有相同的形状。广播会导致数组的维数增加。
+    \begin{minted}{python}
+import numpy as np
+a = np.array([1, 2, 3])
+b = np.array([[1], [2], [3]])
+c = a + b  # 广播a和b，使它们具有相同的形状
+print(c)  # 得到一个3x3的数组
+    \end{minted}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{线性代数}
+
+    Numpy还提供了丰富的线性代数函数，如矩阵乘法、求逆、特征值等。这些函数大多定义在 \mintinline{python}{np.linalg} 模块中。例如：
+    \begin{minted}{python}
+import numpy as np
+A = np.array([[1, 2], [3, 4]])
+B = np.array([[5, 6], [7, 8]])
+C = np.linalg.inv(A)  # 矩阵求逆
+D = np.linalg.eig(A)  # 矩阵特征值和特征向量
+    \end{minted}
+    当然和更加专门的线性代数库（如SciPy）相比，Numpy的线性代数功能是比较基础且缓慢的。
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{实例：用Numpy截取图像的一部分（简易版）}
+
+    现在我们有一个图像数据，存储在一个三维的Numpy数组中，形状为（高度，宽度，通道数）。我们想要截取图像的一部分，比如从左上角开始，截取一个100x100的区域，并仅保留一个通道（比如红色通道）。我们可以使用切片来实现这个操作。例如：
+    \begin{minted}{python}
+import numpy as np
+img = np.random.rand(200, 200, 3)  # 假装这是个图像
+cropped_img = img[0:100, 0:100, 0]  # 截取左上角100x100的区域，并保留红色通道
+    \end{minted}
+
+    实际上想真正处理一个PNG，那仅仅凭借Numpy是远远不够的。我们还需要使用PIL或OpenCV等图像处理库来加载图像数据，并将其转换为Numpy数组进行处理。
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{实例：用Numpy截取图像的一部分（正经版）}
+
+    \begin{minted}{python}
+import numpy as np
+from PIL import Image # 正经的图像处理库
+img = Image.open('image.png')  # 加载图像
+img_array = np.array(img)  # 将图像转换为Numpy数组
+cropped_img_array = img_array[0:100, 0:100, 0]  # 截取左上角100x100的区域，并保留红色通道
+cropped_img = Image.fromarray(cropped_img_array)  # 将截取的数组转换回图像
+cropped_img.save('cropped_image.png')  # 保存截取的图像
+    \end{minted}
+\end{frame}
+
+\begin{frame}
+    \frametitle{实例：效果图}
+
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.3\textwidth]{Lena.png}
+        \includegraphics[width=0.3\textwidth]{new_Lena.png}
+        \includegraphics[width=0.05\textwidth]{cropped_Lena.png}
+    \end{figure}
+
+    \begin{itemize}
+        \item 左：Lena原图，(512, 512, 3)
+        \item 中：[:, :, 0]，(512, 512, 1)，仅保留红色通道
+        \item 右：[100:400, 325:-100, :]，(300, 87, 3)，截取图像的一部分（展示图片大小略有调整）
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{实例：效果图(2)}
+
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.3\textwidth]{Lena.png}
+        \includegraphics[width=0.3\textwidth]{squashed_Lena.png}
+        \includegraphics[width=0.3\textwidth]{reversed_Lena.png}
+    \end{figure}
+
+    \begin{itemize}
+        \item 左：Lena原图，(512, 512, 3)
+        \item 中：[::2, :, :]，(256, 512, 3)，每隔一个像素取一个，得到一个压缩的图像
+        \item 右：[:, ::-1, :]，(512, 512, 3)，将图像水平翻转
+    \end{itemize}
+
+\end{frame}

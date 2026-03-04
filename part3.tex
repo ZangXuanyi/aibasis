@@ -1,0 +1,466 @@
+\section{PyTorch}
+
+\begin{frame}[fragile]
+    \frametitle{PyTorch是什么}
+
+    Torch是一个流行的机器学习框架，主要用于深度学习。它提供了一个灵活的张量库和自动求导系统，使得构建和训练神经网络变得更加容易。是目前的主流深度学习框架之一，广泛应用于学术研究和工业界。其Python版本往往被称作PyTorch，C++版本被称作LibTorch。下文会混用Torch和PyTorch来指代这个框架。
+
+    另一个是TensorFlow，与Torch各有千秋。TF是静态图，适宜科研环境；Torch是动态图，适宜工业环境。
+
+    本课程的大多数内容将使用PyTorch来实现和演示深度学习模型，因为其方便和易于调试的特性。
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{张量}
+
+    张量是Torch的最重要的数据结构，类似于Numpy中的ndarray，但具有更多的功能和更高的性能。张量可以在CPU和GPU上进行计算，并且支持自动求导，这使得它非常适合用于深度学习。
+
+    \begin{minted}{python}
+import torch
+import numpy as np
+a = torch.tensor([1, 2, 3])  # 创建一个一维张量
+b = torch.tensor([[1, 2], [3, 4]])  # 创建一个二维张量
+c = torch.from_numpy(np.array([[1, 2], [3, 4]]))  # 从Numpy数组创建张量
+print(a)
+print(b.shape)  # 输出张量的形状，这里是torch.Size([2, 2])
+    \end{minted}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{张量的基本操作}
+
+    Torch提供了丰富的张量操作，如加法、乘法、矩阵乘法、转置等。例如：
+    \begin{minted}{python}
+import torch
+a = torch.tensor([1, 2, 3])
+b = torch.tensor([4, 5, 6])
+c = a + b  # 张量加法
+d = a * b  # 张量乘法（对应元素相乘）
+e = torch.dot(a, b)  # 向量点积
+f = torch.matmul(a, b)  # 向量点积（也可以用于矩阵乘法）
+g = a.t()  # 转置（对于一维张量来说没有效果）
+h = -a  # 张量取反，实际上是对每个元素取负
+    \end{minted}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{设备}
+
+    Torch支持在不同的设备上进行计算，最常用的设备是CPU和GPU。
+    \begin{minted}{python}
+import torch
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # 自动选择GPU（如果可用）或CPU
+a = torch.tensor([1, 2, 3], device=device)  # 在指定设备上创建张量
+print(a.device)  # 输出张量所在的设备
+    \end{minted}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{张量（和网络）在设备间的移动}
+
+    PyTorch也允许把一个张量从一个设备移动到另一个设备。
+    \begin{minted}{python}
+a = a.to("cpu")  # 将张量移动到CPU
+a = a.to("cuda")  # 将张量移动到GPU
+MyModel = MyModel().to(device)  # 将模型移动到指定设备，实际一样
+    \end{minted}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{为什么要把张量在设备间移动？}
+
+    在深度学习中，GPU通常比CPU更适合进行大规模的矩阵运算和并行计算，因此我们通常希望在GPU上进行训练和推理。
+
+    但是，并不是所有的操作都支持在GPU上进行，有些操作可能只能在CPU上执行（例如某些数据预处理操作、打印张量的内容等）。
+
+    所以移动张量和网络到设备是很常见的操作，尤其是在训练过程中，我们需要确保所有的张量和模型参数都在同一个设备上，以避免出现错误。
+
+    另一方面：移动张量和网络到设备也是有开销的，所以我们应该尽量减少不必要的移动操作。
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{数据处理}
+
+    如果自己本地有一个数据集，可以通过继承 \mintinline{python}{Dataset} 类来定义一个自定义的数据集类。
+    \begin{minted}{python}
+import torch
+from torch.utils.data import Dataset, DataLoader 
+class MyDataset(Dataset):
+    def __init__(self, data):
+        self.data = data
+    def __len__(self):
+        return len(self.data)
+    def __getitem__(self, idx):
+        return self.data[idx]
+
+dataset = MyDataset(data) # 假设data是一个list或np.array
+    \end{minted}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{用现成的数据集}
+
+    Torch还提供了许多常用的数据集和数据加载器，例如MNIST、CIFAR-10等，可以通过 \mintinline{python}{torchvision.datasets} 模块来使用。这些数据集通常可以直接用。
+    \begin{minted}{python}
+import torch
+from torchvision import datasets, transforms
+transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
+train_dataset = datasets.MNIST(root='./data', train=True, download=True, transform=transform)
+train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
+    \end{minted}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{数据清洗和数据增强}
+
+    \begin{minted}{python}
+import torch
+from torchvision import transforms
+transform = transforms.Compose([
+    transforms.RandomCrop(32),  # 随机裁剪一个32x32的区域
+    transforms.RandomHorizontalFlip(),  # 随机水平翻转
+    transforms.ToTensor(),  # 将图像转换为张量
+    transforms.Normalize((0.5,), (0.5,))  # 标准化
+])
+train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
+train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
+    \end{minted}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{构建神经网络}
+
+    \begin{minted}{python}
+import torch
+import torch.nn as nn # 习惯上写作nn
+class MyModel(nn.Module):   # 该模型继承自nn.Module
+    def __init__(self):
+        super(MyModel, self).__init__()
+        self.w1 = nn.Parameter(torch.randn(10, 5))  # 定义一个可训练的参数
+        self.b1 = nn.Parameter(torch.randn(5))  # 定义一个可训练的参数
+    def forward(self, x):
+        x = torch.matmul(x, self.w1) + self.b1  # 这里实际上是手搓了个线性层的前向传播逻辑
+        return x
+    \end{minted}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{现成的层}
+
+    在实际应用中，我们通常会使用PyTorch提供的现成层来简化代码。
+
+    \begin{minted}{python}
+class MyModel(nn.Module):
+    def __init__(self):
+        super(MyModel, self).__init__()
+        self.linear = nn.Linear(10, 5)  # 定义一个线性层
+        self.relu = nn.ReLU()  # 定义一个ReLU激活函数
+    def forward(self, x):
+        x = self.linear(x)  # 使用现成的线性层进行前向传播
+        x = self.relu(x)  # 使用现成的ReLU激活函数进行前向传播
+        return x
+    \end{minted}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{Dropout正则化}
+
+    Dropout在PyTorch中也有现成的实现：
+    \begin{minted}{python}
+class MyModel(nn.Module):
+    def __init__(self):
+        super(MyModel, self).__init__()
+        self.linear = nn.Linear(10, 5)
+        self.dropout = nn.Dropout(p=0.5)  # 定义一个Dropout层，丢弃概率为0.5
+    def forward(self, x):
+        x = self.linear(x)
+        x = self.dropout(x)  # 使用Dropout层进行前向传播
+        return x
+    \end{minted}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{损失函数}
+
+    PyTorch提供了多种常用的损失函数，如均方误差（MSE）、交叉熵损失等，可以通过 \mintinline{python}{torch.nn} 模块来使用。
+
+    例如：
+    \begin{minted}{python}
+model = MyModel()  # 预先定义了个模型
+input = torch.randn(1, 10)  # 创建一个随机输入
+output = model(input)  # 前向传播
+target = torch.randn(1, 5)  # 目标
+loss = nn.MSELoss()(output, target)  # 定义一个简单的均方误差损失函数
+print(loss)  # 输出损失值
+    \end{minted}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{L1、L2正则化}
+    L1和L2正则化通常在定义损失函数时使用，不需要在模型中定义。比较差的方式是这里没有现成的实现，我们需要手动计算正则化项并添加到损失函数中。例如：
+    \begin{minted}{python}
+mse_loss = nn.MSELoss()(output, target)  # 定义一个简单的均方误差损失函数
+l1_loss = 0.01 * torch.sum(torch.abs(model.linear.weight))  # L1正则化项
+l2_loss = 0.01 * torch.sum(model.linear.weight ** 2)  # L2正则化项
+total_loss = mse_loss + l1_loss + l2_loss  # 总损失
+print(total_loss)  # 输出总损失值
+    \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{自动求导}
+
+    在PyTorch中，自动求导是通过计算图来实现的。当我们对张量进行操作时，PyTorch会自动构建一个计算图，并记录所有的操作。
+
+    用现成的层来构建神经网络时，PyTorch会自动将层的参数（如权重和偏置）设置为可训练的张量。
+
+    而在手动定义的层中，我们需要使用 \mintinline{python}{nn.Parameter} 来定义可训练的参数，这样PyTorch才会自动计算它们的梯度、不需要我们手动实现backward函数，PyTorch会自动处理。
+
+\end{frame}
+
+
+\begin{frame}[fragile]
+    \frametitle{反向传播}
+
+    在PyTorch中，反向传播是通过调用 \mintinline{python}{backward()} 方法来实现的。当我们计算出损失函数的值后，可以调用 \mintinline{python}{loss.backward()} 来计算所有可训练参数的梯度。
+
+    例如：
+    \begin{minted}{python}
+model = MyModel()   # 预先定义了个模型
+input = torch.randn(1, 10)  # 创建一个随机输入
+output = model(input)  # 前向传播
+loss = nn.MSELoss()(output, target)  # 定义一个简单的损失函数
+loss.backward()  # 反向传播，计算梯度
+print(model.linear.weight.grad)  # 输出线性层权重的梯度
+    \end{minted}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{优化器}
+
+    \begin{minted}{python}
+import torch.optim as optim
+model = MyModel()  # 预先定义了个模型
+optimizer = optim.SGD(model.parameters(), lr=0.01)  # 定义一个SGD优化器，学习率为0.01
+input = torch.randn(1, 10)  # 输入（实际上应是训练数据）
+output = model(input)  # 前向传播
+target = torch.randn(1, 5)  # 目标
+loss = nn.MSELoss()(output, target)  # 定义一个简单的损失函数
+optimizer.zero_grad()  # 清零梯度
+loss.backward()  # 反向传播，计算梯度
+optimizer.step()  # 更新模型参数
+    \end{minted}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{学习率调度器}
+
+    \begin{minted}{python}
+import torch.optim as optim
+from torch.optim import lr_scheduler
+model = MyModel()  # 预先定义了个模型
+optimizer = optim.SGD(model.parameters(), lr=0.01)  # 定义一个SGD优化器，学习率为0.01
+scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)  # 定义一个StepLR调度器，每10个epoch将学习率乘以0.1
+for epoch in range(50):  # 训练50个epoch
+    # 训练代码
+    scheduler.step()  # 更新学习率
+    print(optimizer.param_groups[0]['lr'])  # 输出当前学习率
+optimizer.step()  # 更新学习率
+    \end{minted}
+    
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{模型的训练}
+
+    \begin{minted}{python}
+for epoch in range(num_epochs): # 一个训练周期
+    model.train()  # 设置模型为训练模式
+    for batch in train_loader:
+        inputs, targets = batch
+        optimizer.zero_grad()  # 清零梯度
+        outputs = model(inputs)  # 前向传播
+        loss = nn.MSELoss()(outputs, targets)  # 计算损失
+        loss.backward()  # 反向传播
+        optimizer.step()  # 更新模型参数
+    \end{minted}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{模型的评估}
+
+    \begin{minted}{python}
+model.eval()  # 设置模型为评估模式
+with torch.no_grad():  # 在评估阶段不需要计算梯度
+    for batch in val_loader:
+        inputs, targets = batch
+        outputs = model(inputs)  # 前向传播
+        # 计算评估指标，例如准确率、F1分数等
+    \end{minted}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{模型的保存和加载}
+
+    \begin{minted}{python}
+model = MyModel()  # 预先定义了个模型
+# 训练了100个EPOCH
+torch.save(model.state_dict(), 'model.pth')  # 保存模型的状态字典
+# 之后需要加载模型
+model = MyModel()  # 重新定义模型结构
+model.load_state_dict(torch.load('model.pth'))  # 加载模型的状态字典
+# 想继续训练就继续训练，想评估就评估，但务必记住将模型调到对应的模式
+    \end{minted}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{小结}
+    实际上上述内容讲得比较乱。第一次写PyTorch的时候，只需要记住以下顺序，并大概实现一下就行了：
+
+    \begin{enumerate}
+        \item 加载数据集（\mintinline{python}{torch.utils.data}）
+        \item 定义模型（\mintinline{python}{torch.nn.Module}，以及各种层和激活函数）
+        \item 定义损失函数（\mintinline{python}{torch.nn}）
+        \item 定义优化器（\mintinline{python}{torch.optim}）、学习率调度器（\mintinline{python}{torch.optim.lr_scheduler}）
+        \item 训练模型（前向传播、计算损失、反向传播、更新参数）
+        \item 评估模型（设置模型为评估模式，计算评估指标）
+    \end{enumerate}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{实例：线性分类器}
+
+    问题：现对MNIST10数据集的0和1进行二分类，输入是28x28的图像。希望模型能够判断输入图像是0还是1。
+
+    这是一个\textbf{线性分类器}的问题，我们可以使用一个简单的线性层来实现这个模型。接下来将会给出一个完备的代码示例。
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{实例：线性分类器：加载数据集}
+
+    \begin{minted}{python}
+import torch
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
+# 由于只要区分0和1，所以我们需要对数据集进行过滤，只保留标签为0和1的样本
+transform = transforms.Compose([
+    transforms.ToTensor(),  # 将图像转换为张量
+    transforms.Normalize((0.5,), (0.5,))  # 标准化
+])
+train_dataset = datasets.MNIST(root='./data', train=True, download=True, transform=transform)
+
+    \end{minted}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{实例：线性分类器：过滤数据集}
+
+    \begin{minted}{python}
+# 过滤数据集，只保留标签为0和1的样本
+train_dataset.data = train_dataset.data[(train_dataset.targets == 0) | (train_dataset.targets == 1)]
+train_dataset.targets = train_dataset.targets[(train_dataset.targets == 0) | (train_dataset.targets == 1)]
+train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)  # 创建数据加载器
+# 自此第一步完成        
+    \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{实例：线性分类器：定义模型}
+
+    \begin{minted}{python}
+class LinearClassifier(nn.Module):
+    def __init__(self):
+        super(LinearClassifier, self).__init__()
+        self.linear = nn.Linear(28*28, 1)  # 定义一个线性层，输入维度为28*28，输出维度为1
+
+    def forward(self, x):
+        x = x.view(-1, 28*28)  # 将输入图像展平为一维向量
+        x = self.linear(x)  # 前向传播
+        return x
+# 定义模型实例
+model = LinearClassifier()
+    \end{minted}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{实例：线性分类器：损失函数、优化器、学习率调度器}
+
+    由于这是一个二分类问题，我们可以使用二元交叉熵损失函数（Binary Cross Entropy Loss）来计算损失。
+
+    \begin{minted}{python}
+criterion = nn.BCEWithLogitsLoss()  # 定义二元交叉熵损失函数，适用于线性输出
+optimizer = optim.SGD(model.parameters(), lr=0.01)  # 定义一个SGD优化器，学习率为0.01
+scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)  # 定义一个StepLR调度器，每10个epoch将学习率乘以0.1
+    \end{minted}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{实例：线性分类器：训练模型}
+
+    \begin{minted}{python}
+for epoch in range(20): # 训练20个epoch
+    model.train()  # 设置模型为训练模式
+    for batch in train_loader:
+        inputs, targets = batch
+        targets = targets.float().unsqueeze(1)  # 将目标转换为浮点数，并调整形状以匹配输出
+        optimizer.zero_grad()  # 清零梯度
+        outputs = model(inputs)  # 前向传播
+        loss = criterion(outputs, targets)  # 计算损失
+        loss.backward()  # 反向传播
+        optimizer.step()  # 更新模型参数
+    scheduler.step()  # 更新学习率
+    print(f'Epoch {epoch+1}/{num_epochs}, Loss: {loss.item()}')  # 输出当前epoch和损失值
+    \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{实例：线性分类器：评估模型}
+    \begin{minted}{python}
+model.eval()  # 设置模型为评估模式
+correct = 0
+total = 0
+with torch.no_grad():  # 在评估模式下不计算梯度
+    for batch in train_loader:
+        inputs, targets = batch
+        targets = targets.float().unsqueeze(1)
+        outputs = model(inputs)
+        predicted = (outputs > 0).float()  # 将输出转换为预测标签（0或1）
+        total += targets.size(0)    # 统计总样本数
+        correct += (predicted == targets).sum().item()# 正确的数量
+print(f'Accuracy: {100 * correct / total}%')  
+    \end{minted}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{实例：线性分类器：之后还能做些什么？}
+    
+    训练完成后，可以保存模型以供进一步使用和评估。
+
+    当然，上述训练和评估流程可以反复执行多次，保证模型的性能确实是在随着训练的进行而提升的。
+
+\end{frame}
