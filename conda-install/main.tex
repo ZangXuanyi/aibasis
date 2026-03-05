@@ -1,9 +1,26 @@
+% Copyright (C) 2026 臧炫懿
+% 
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 \documentclass[12pt]{ctexart}
 
 \usepackage{geometry}
 \geometry{a4paper,scale=0.8}
 \usepackage{graphicx}
 \usepackage{minted}
+\usepackage{enumitem}
+\setlist{nolistsep}
 \usepackage{hyperref}
 
 \setminted{
@@ -22,16 +39,41 @@
     % url=false,
 }
 
-\title{\Huge\textbf{Anaconda安装教程（喂饭级）}}
-\author{可爱大笨蛋}
+\title{\Huge\textbf{课程编程相关内容详细安装教程}}
+\author{臧炫懿}
 \date{\today}
 
 \begin{document}
 \maketitle
 
-鉴于上述讲义语焉不详，我决定写一篇更详细的安装教程，适合完全没有编程经验的同学。
+鉴于上述演示文稿语焉不详，该教程将会非常详细，适合编程经验较少的同学。
 
-\section{下载Anaconda}
+\textbf{非常建议在下周一之前将以下内容全部安装好，以免下周一具体实操之前出现一些不必要的麻烦。}
+
+\tableofcontents
+
+\section{Anaconda/Miniconda}
+
+Python如此流行，主要是因为其蓬勃的第三方库生态系统。但在实际的编程操作中，我们经常遇见以下情况：
+\begin{itemize}
+    \item 不同的项目需要不同版本的Python；
+    \item 项目甲需要库A的版本1.0，而项目乙需要库A的版本2.0；
+    \item 项目丙需要库B、库C，而项目丁需要库D、库E，且这些库之间存在冲突。
+\end{itemize}
+如果直接把所有包都安装在全局环境中，那么就会出现版本冲突、依赖混乱等问题，导致项目无法正常运行。
+
+为了解决以上生产中的常见情况，我们引入了\textbf{虚拟环境}。它一般能够隔离：
+\begin{itemize}
+    \item 不同的编译器/解释器版本；
+    \item 不同的库；
+    \item 不同的系统级依赖和环境变量等。
+\end{itemize}
+
+目前最元老、最流行的虚拟环境工具是conda（Anaconda、Miniconda）。在本节课中，推荐新手使用该虚拟环境管理工具，且最为推荐Miniconda（较为轻量级）。
+
+conda最大的问题在于：慢。这个慢是全方位的：不仅是其解析依赖、装库的速度慢，也包括其下载库的速度慢。因此常用pip辅助conda进行包管理。
+
+\subsection{下载安装Anaconda/Miniconda}
 
 我提供三种途径下载Anaconda/Miniconda。选择其中一种你喜欢的、觉得速度快的源进行下载即可，这个部分不需要过于纠结。不同的源没有区别，下载的文件是一样的。
 
@@ -57,8 +99,6 @@
 
 同样选择适合你操作系统的最新版本，点击下载。
 
-\section{安装Anaconda}
-
 刚刚下载的是一个安装包。我们应当运行该安装包进行安装。安装过程非常简单，基本上按照提示点击“下一步”即可。安装过程中会有一些选项，其中有一项“Add Anaconda to my PATH environment variable”，新手建议勾选它，这样在命令行中就可以直接使用conda命令了\footnote{仅在Windows中，该选项会导致一些问题。但是你既然已经是新手了，那这个问题对你而言是非常遥远的，完全不必在意，也不要在意部分LLM或教程要求的“绝对不要勾选”，尽管勾选即可。确信自己不是新手的，可以自行查找“conda cli”相关的教程。}。
 
 安装之后，重启你的计算机。
@@ -77,8 +117,6 @@ conda init --all
 该命令会为你的终端配置conda的环境变量，使得你在任何终端中都可以使用conda命令。
 
 如果终端提示“conda: command not found”或者类似的错误，说明安装过程中可能出现了问题，八成是没有将conda添加到环境变量中。\textbf{只要你在刚才听从了我的建议，勾选了“Add Anaconda to my PATH environment variable”，就不应该出现这个问题。}如果你没有勾选那个选项，那么你需要自行查找相关资料解决这个问题了，毕竟你已经自认为不是新手了。
-
-\section{换源}
 
 \subsection{为conda换源}
 
@@ -121,14 +159,70 @@ custom_channels:
 
 北大源的换源教程和它类似。
 
+\subsection{conda命令指南}
+
+在下载并安装了相关的可执行文件，并且换了源之后，我们就可以使用conda命令进行包管理了。
+
+我们一般不使用conda的GUI（Anaconda Navigator），该操作非常复杂且繁琐。熟练的开发者习惯使用CLI进行包管理，这就是“CLI在复杂操作中的效率比GUI更高”的体现。
+
+一般情况，一个命令会满足以下结构：
+\begin{minted}{bash}
+executable <command> <subcommand> [options]
+\end{minted}
+其中：
+\begin{itemize}
+    \item executable：可执行文件的名字，是必要的（在这里就是conda），表示你要使用哪个工具进行操作；
+    \item command：命令，表示你想要执行的操作，比如创建虚拟环境、安装库、更新库等，该部分可能是可选的（但大多数命令都是需要的），如果不写，默认会执行一些基本的操作，比如显示帮助信息等；
+    \item subcommand：子命令，进一步细化你的操作，比如安装库时指定库的名字和版本等，该部分也是可选的，具体是否需要取决于你要执行的操作；
+    \item options：选项，用于调整命令的行为，比如指定安装源、设置环境变量等，该部分也是可选的。
+\end{itemize}
+在这些要素之间，通常会有一些空格分隔开来，以便于区分不同的部分。以下的所有命令，都遵从这个结构。
+    
+\begin{description}
+    \item[创建虚拟环境] \mintinline{python}{conda create -n 环境名 python=版本号} 。例如，\mintinline{python}{conda create -n myenv python=3.8} 会创建一个名为 \mintinline{python}{myenv} 的虚拟环境，里面安装了Python 3.8。我们可以把虚拟环境理解为一个“盒子”，这个操作就是创建了这样一个盒子，并往盒子里面放入了Python 3.8。实际上后面的 \mintinline{python}{python=3.8} 是可选的，如果删去这些，就会创建一个空的虚拟环境，里面没有任何东西。
+    \item[进入虚拟环境] \mintinline{python}{conda activate 环境名} 。例如，\mintinline{python}{conda activate myenv} 会进入之前创建的 \mintinline{python}{myenv} 虚拟环境。进入虚拟环境后，你就相当于进入了那个“盒子”，在里面进行操作了。如果你没有进入虚拟环境，那么你就是在全局环境中进行操作了，失去了虚拟环境的隔离效果。
+    \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.8\textwidth]{conda-env.png}
+        \caption{命令行中，\texttt{(base)} 表示当前所在的虚拟环境。相应的，下一行是在全局环境中的，因此没有 \texttt{(base)} 标识符。}
+    \end{figure}
+    \item[退出虚拟环境] \mintinline{python}{conda deactivate}。这个命令会退出当前的虚拟环境，回到全局环境中。
+    \item[安装库] \mintinline{python}{conda install 库名=版本号}。例如，\mintinline{python}{conda install numpy=1.21} 会在当前虚拟环境中安装numpy库的1.21版本。安装库时，版本号也是可选的，如果删去版本号，就会安装满足依赖的、最新版本的库。\textbf{但不推荐使用该命令安装库。当虚拟环境较大时，解析依赖速率太慢。}一般只用该命令安装Python本身，或一些极为基础的库以及系统级别依赖等。
+    \item[删除虚拟环境] \mintinline{python}{conda remove -n 环境名 --all}。例如，\mintinline{python}{conda remove -n myenv --all} 会删除之前创建的 \mintinline{python}{myenv} 虚拟环境。这是因为，conda的虚拟环境内容与项目相互分离，单纯删除项目不会删除虚拟环境，导致磁盘空间占用过大，所以需要手动删除虚拟环境。
+\end{description}
+
+下面，请试着创建自己的虚拟环境，并安装Python 3.10。
+
+\subsection{交互式Python环境}
+
+除了直接运行现成的代码文件，还可以直接在终端中输入Python命令来进行交互式编程。这种方式非常适合调试和测试一些简单的代码片段，或验证部分包的功能。
+
+随便开一个终端，进入你的虚拟环境，然后输入 \mintinline{bash}{python} 来进入Python的交互式环境。你会看到一个提示符 \texttt{>>>}，这时你就可以输入Python代码了。
+
+这个交互式环境和常规的代码文件性质有所区别，例如裸运算会直接输出结果等。
+
+离开该交互式环境的方法有两种：输入 \texttt{exit()} 或者按 \texttt{Ctrl + Z}（Windows）或 \texttt{Ctrl + D}（Linux和macOS）。后者是输入了一个EOF（End Of File）信号，表示输入结束了。
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{python-interactive.png}
+    \caption{在终端中输入 \texttt{python} 来进入Python的交互式环境。这里导入numpy失败，是因为我没有启用虚拟环境，系统环境中也没有安装numpy。}
+\end{figure}
+
+\section{PyPI（pip）}
+
+PyPI（Python Package Index）是Python的官方包源，里面有成千上万的第三方库。pip是Python的包管理工具，可以从PyPI安装和管理这些库。
+
+只要利用conda创建了虚拟环境并安装了python，那么pip就已经自动安装好了。
+
+当然前提是你的虚拟环境里已经装了python。运行以下命令安装python：
+\begin{minted}{bash}
+conda install python
+\end{minted}
+
 \subsection{为pip换源}
 
-只要你看了我的上一个讲义，你就会知道pip也是需要换源的。pip默认使用官方源进行包管理，这个源在国内访问情况比conda要好些，不过还是建议换源。
-
-当然前提是你的虚拟环境里已经装了python和pip。运行以下命令安装python和pip：
-\begin{minted}{bash}
-conda install python pip
-\end{minted}
+pip默认使用官方源进行包管理，这个源在国内访问情况比conda要好些。如果你觉得pip的下载速度也很慢，那么你也可以为pip换源。
 
 同样的，以清华源为例。
 
@@ -145,5 +239,206 @@ pip config set global.index-url https://mirrors.tuna.tsinghua.edu.cn/pypi/web/si
     该命令会将pip的默认源设置为清华源。
     \item 关闭终端并重新打开，以确保配置生效。
 \end{enumerate}
+
+\subsection{pip的使用}
+
+pip的命令结构和conda类似，也是\texttt{executable <command> <subcommand> [options]}的结构。只不过，这里的executable是pip了。
+
+\begin{description}
+    \item[安装库] \mintinline{python}{pip install 库名==版本号}。例如，\mintinline{python}{pip install numpy==1.21} 会在当前虚拟环境中安装numpy库的1.21版本。安装库时，版本号也是可选的，如果删去版本号，就会安装满足依赖的、最新版本的库。建议使用该命令安装库，因为pip的解析依赖速率比conda快很多。\textcolor{red}{\textbf{非常建议在安装库之前，确定自己是否在虚拟环境中（即命令提示符之前有没有类似 \texttt{(base)} 的标识符）。如果不在虚拟环境中，那么你就是在全局环境中安装库了，这会导致版本冲突、依赖混乱等问题，甚至可能会破坏你的系统环境，导致一些软件无法正常运行。}}
+    \item[卸载库] \mintinline{python}{pip uninstall 库名}。例如，\mintinline{python}{pip uninstall numpy} 会在当前虚拟环境中卸载numpy库。但一般不会卸载库。
+    \item[列出已安装的库] \mintinline{python}{pip list}。该命令会列出当前虚拟环境中已经安装的所有库及其版本。
+    \item[导出当前环境] \mintinline{python}{pip freeze > requirements.txt}。该命令会将当前虚拟环境中已安装的库及其版本信息导出到一个文件中，方便以后在其他地方重新创建相同的环境。这是因为，在实际的开发中，我们往往需要能够让别人能够复现自己的开发环境从而运行自己的代码，所以我们需要一个文件来记录我们安装了哪些库以及它们的版本信息。这个文件通常叫做\texttt{requirements.txt}。在我们的作业中，这个文件也是必要的，只有通过该文件，评判作业的助教才能复现和你基本一样的环境，进而运行你的代码并评判你的作业。\textbf{所以一定要把该文件连同你的代码一起提交。因没有提交该作业而导致代码运行失败的，造成的扣分后果自负。}
+    \item[从文件复现环境] \mintinline{python}{pip install -r requirements.txt}。该命令会从\texttt{requirements.txt}文件中读取库及其版本信息，并在当前虚拟环境中安装这些库。
+\end{description}
+
+下面，请试着在你的虚拟环境中，安装Numpy、Matplotlib、Scikit-learn这三个库，并且导出当前环境到\texttt{requirements.txt}文件中。一定记住，在装库之前，先确认自己在虚拟环境中！
+
+\section{VS Code}
+
+大一上学期，很多人可能会使用Visual Studio、DevC++这两个IDE进行编程。但这两个IDE在Python开发中：
+\begin{itemize}
+    \item VS的Python支持非常一般。
+    \item DevC++根本不支持Python。
+\end{itemize}
+虽然Python自带了一个叫做IDLE的IDE，但它的功能非常有限，无法满足我们在课程中进行Python开发的需求；JB Pycharm又过于臃肿，且社区版的功能又不够用。
+
+我们非常建议：使用轻量级的编辑器对代码文件进行修改，并使用命令行或编辑器插件来运行代码。以下是一些推荐的编辑器：
+\begin{itemize}
+    \item VS Code（VS Codium、OpenCode）：微软出品的免费开源编辑器，功能强大，插件丰富。上手难度较低，适合新手。也是本课程推荐的编辑器。
+    \item Vim（NeoVim）：经典的文本编辑器。上手难度较高；一旦熟练，效率极高。
+    \item Notepad（Notepad++、Sublime Text）：经典“记事本”。功能有限，但上手非常简单。
+\end{itemize}
+
+VS Code是免费软件。如果你发现你需要付费，那说明你被骗了！下文将简称为Code。
+
+\subsection{下载安装Code}
+
+访问官网：\url{https://code.visualstudio.com/}，点击右上角的“Download”按钮，选择适合你操作系统的版本进行下载。
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{vscode-download.png}
+    \caption{在VS Code的官网上下载适合你操作系统的版本。}
+\end{figure}
+
+建议选择System Installer版本进行安装，同样建议在安装过程中将Code添加到环境变量中，这样在命令行中就可以直接使用\texttt{code}命令来打开VS Code了（当然这不是主要的使用方式，但仍建议添加，防止后续出现奇怪的问题）。
+
+安装完成后，重启计算机。
+
+\subsection{Code的插件系统}
+
+VS Code的强大之处在于其丰富的插件系统。插件可以为Code添加各种功能，比如语法高亮、代码补全、调试工具等。
+
+搜索、安装以下插件来启用其对Python开发的支持：
+\begin{itemize}
+    \item Python：微软官方的Python插件，提供了基本的Python开发功能，如语法高亮、代码补全、调试等。
+    \item Pylance：微软官方的Python语言服务器插件，提供了更强大的代码分析和智能提示功能，能够帮助你更高效地编写Python代码。
+    \item Python Debugger：提供了Python代码的调试功能，允许你在VS Code中设置断点、单步执行代码、查看变量等。
+\end{itemize}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{vscode-plugins.png}
+    \caption{在VS Code的插件市场中搜索并安装Python相关的插件。}
+\end{figure}
+
+如果英文苦手，建议安装插件Chinese (Simplified) Language Pack for Visual Studio Code来将VS Code的界面语言设置为中文。安装该插件之后，需要重启Code才能生效（关闭再打开即可）。
+
+\subsection{使用Code}
+
+\paragraph{打开工作区（文件夹）}
+
+Code插件的正常工作，基于“工作区”的概念。初学者将“工作区”理解为“文件夹”即可。
+
+打开文件夹的方式有两种：
+\begin{itemize}
+    \item 打开Code，点击左上角的“文件”菜单，选择“打开文件夹”（或直接按 \texttt{Ctrl + K, Ctrl + O}），然后选择你想要作为工作区的文件夹。
+    \item 先在文件资源管理器中找到该文件夹，右键点击它，选择“使用Code打开”\footnote{在Win11中，需要先选择“显示更多选项”，才能看到“使用Code打开”这个选项。如果没有这个选项，说明你在安装Code时没有将它添加到环境变量中，请你自行查找相关资料进行理解}。
+    \item 或使用命令行，进入该文件夹所在的目录，输入 \mintinline{bash}{code 文件夹名} 来打开Code并将该文件夹作为工作区。
+\end{itemize}
+
+建议使用纯英文目录，避免一些奇怪的问题。
+
+\paragraph{创建文件}
+
+单击下图所示的按钮，即可创建一个文件。将该文件命名为 \texttt{*.py} 即可。
+
+Python文件的扩展名是 \texttt{.py}。建议使用英文命名文件。一般不建议用中文命名文件：虽然Python确实支持，但是这样会给之后带来很多麻烦（尤其是用CLI运行代码时）。
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{code-touch.png}
+    \caption{在Code的资源管理器中，点击这个按钮来创建一个新的文件。}
+\end{figure}
+
+\paragraph{唤起虚拟环境}
+
+在Code中，首先要指定相应的虚拟环境，Python才能根据该虚拟环境中的包来提供基于包的高亮和补全功能，否则会错误地将一些包内的语法标记为语法错误。这会极大的影响你的编程体验。
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{code-env.png}
+    \caption{在Code的右下角，点击Python版本号来选择相应的虚拟环境。}
+\end{figure}
+
+\paragraph{运行代码}
+
+输入一些代码之后，使用CLI来运行代码是最简单、便捷的方式，无需任何配置。在用惯了CLI之后，\textbf{Python插件主要是用来提供语法高亮、代码补全、调试等功能的，并不是用来运行代码的。}
+
+按快捷键 \texttt{Ctrl + `} 来唤起终端。其中， \texttt{`} 是反引号，位于键盘上1的左边。然后在终端中输入 \mintinline{bash}{python 文件名.py} 来运行代码。例如，如果你的文件名是 \mintinline{bash}{test.py}，那么你就应该输入 \mintinline{bash}{python test.py} 来运行它。
+
+实际上，使用Python运行代码的命令依然遵循着\texttt{executable <command> <subcommand> [options]}的结构。这里的executable是python，command是文件名.py，其余的都省略了。
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{code-run.png}
+    \caption{在Code中唤起终端并运行Python代码。}
+\end{figure}
+
+如果你的文件名不同，那么应当运行的命令也会不同。
+
+试着进入你的工作区，创建一个 \texttt{hello.py} 的文件，并在里面输入以下代码：
+\begin{minted}{python}
+print("Hello, world!")
+\end{minted}
+保存该文件（可以按 \texttt{Ctrl + S} 来快速保存），然后在终端中运行该文件，来看看输出结果。
+
+\section{PyTorch}
+
+PyTorch是一个流行的深度学习框架，提供了丰富的工具和库来构建和训练神经网络模型。它具有动态计算图、强大的GPU加速支持以及丰富的社区资源，使得它成为深度学习研究和应用的首选框架之一。我们在这节课中将会频繁地使用该库。
+
+Torch分两种：用Python当接口的PyTorch，以及用C++当接口的LibTorch。我们在课程中使用的是前者，所以之后涉及的Torch全都是PyTorch。
+
+PyTorch确实是一个Python库，所以理论上确实可以直接用pip安装；但是这个库又足够特殊，其特殊性在于：该库有GPU和CPU两个版本，安装命令不同；如果安装了GPU版本，但你的计算机没有GPU，那么就无法使用该库了；如果安装了CPU版本，但你的计算机有GPU，那么就无法利用GPU加速了。下文会介绍如何正确安装PyTorch。
+
+一定要优先高版本PyTorch，麻烦少。
+
+\subsection{CPU版本PyTorch}
+
+如果你确信你的计算机没有NVIDIA的GPU、或者你不想使用GPU，那么你可以直接安装CPU版本的PyTorch。
+
+访问PyTorch的官网：\url{https://pytorch.org/}，在页面上找到“Install PyTorch”部分，选择适合你的配置的选项。对于CPU版本的PyTorch，你可以选择你的系统版本，如图所示：
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{pytorch.png}
+    \caption{在PyTorch官网上选择适合你的配置的选项来获取安装命令。}
+\end{figure}
+既然你要下载的是CPU版本，那就选择“CPU”选项。选择之后，页面下方会自动生成一个安装命令，你可以直接复制该命令并在终端中运行它来安装CPU版本的PyTorch。
+
+\textbf{装库之前，务必确定自己在虚拟环境中！}
+
+\subsection{GPU版本PyTorch（新版本）}
+
+如果你确信你的计算机有NVIDIA的GPU，并且你想要使用GPU来加速PyTorch，那么你需要安装GPU版本的PyTorch。
+
+你的GPU应当是NVIDIA的，并且支持CUDA。你可以通过以下命令来检查你的GPU是否支持CUDA：
+\begin{minted}{bash}
+nvidia-smi
+\end{minted}
+如果你的GPU支持CUDA，那么你就可以安装GPU版本的PyTorch了。
+
+如果上述命令无效，但你的GPU确实是NVIDIA的，那么你需要安装NVIDIA驱动。访问NVIDIA的官网：\url{https://www.nvidia.com/Download/index.aspx}，选择适合你的GPU型号和操作系统的驱动进行下载和安装。安装完成后，重启计算机，然后再次运行上述命令来检查GPU是否支持CUDA。
+
+运行完毕上述命令之后，你会看到一个表格，表格的右上角就是你的CUDA版本。记住该版本号。
+
+之后，回到PyTorch官网，根据你的CUDA版本来选择相应的选项。
+
+\subsection{GPU版本PyTorch（旧版GPU，新版PyTorch）}
+
+如果你的CUDA版本不能在PyTorch官网上找到，那么说明你的GPU比较旧了，无法安装最新版的PyTorch了。你需要安装一个较旧版本的PyTorch。
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{pytorch-previous.png}
+    \caption{在PyTorch官网上进入旧版PyTorch的下载页面。}
+\end{figure}
+
+该下载页面会提供许多的旧版本的PyTorch，你可以根据你的CUDA版本来选择相应的版本进行安装。
+
+可以使用 \texttt{Ctrl + F} 来启用搜索功能，并查找你的CUDA版本号，找到之后就可以看到对应的安装命令了。
+
+\subsection{GPU版本PyTorch（1.13之前的版本）}
+
+在PyTorch 1.13之后，PyTorch自带工具包：CUDA Toolkit和cuDNN。这两个东西是NVIDIA提供的GPU加速库，PyTorch依赖它们来实现GPU加速的功能。在1.13之前的版本中，PyTorch并不自带这两个工具包，所以你需要自己安装它们。
+
+实际上上述操作是非常常见的，因为很多论文用的是经典老环境 PyTorch 1.8.0 或者 1.13.0。
+
+访问网址\url{https://developer.nvidia.com/cuda-toolkit}，选择适合你的CUDA版本的CUDA Toolkit进行下载和安装。
+
+访问网址\url{https://developer.nvidia.com/cudnn}，选择适合你的CUDA版本的cuDNN进行下载和安装。
+
+\textbf{如果你安装的是PyTorch 1.13或更高版本，那么你不需要安装CUDA Toolkit和cuDNN了，因为它们已经被包含在PyTorch中了。这时再安，反而可能会导致一些奇怪的问题。}
+
+\subsection{验证安装}
+
+在安装之后，先打开一个新的终端，进入你的虚拟环境，然后进入Python交互式环境，输入以下命令来验证安装是否成功：
+\begin{minted}{python}
+import torch
+print(torch.__version__)
+print(torch.cuda.is_available()) # GPU版本运行这个，CPU不运行这个
+\end{minted}
+如果输出了PyTorch的版本号，说明你成功安装了PyTorch；如果输出了True，说明你安装的是GPU版本的PyTorch，且可以正常加速。如果你安装的不是CPU版本的PyTorch但还是输出False，那么说明你的GPU没有被正确识别，请自行查找相关资料来解决这个问题。
+
 
 \end{document}

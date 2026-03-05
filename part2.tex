@@ -1,3 +1,18 @@
+% Copyright (C) 2026 臧炫懿
+% 
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 \section{Numpy}
 
 \begin{frame}
@@ -182,9 +197,9 @@ cropped_img.save('cropped_image.png')  # 保存截取的图像
     \end{figure}
 
     \begin{itemize}
-        \item 左：Lena原图，(512, 512, 3)
-        \item 中：[:, :, 0]，(512, 512, 1)，仅保留红色通道
-        \item 右：[100:400, 325:-100, :]，(300, 87, 3)，截取图像的一部分（展示图片大小略有调整）
+        \item 左：Lena原图，形状(512, 512, 3)
+        \item 中：切片[:, :, 0]，形状(512, 512, 1)，仅保留红色通道
+        \item 右：切片[100:400, 325:-100, :]，形状(300, 87, 3)，截取图像的一部分（展示图片大小略有调整）
     \end{itemize}
 
 \end{frame}
@@ -200,9 +215,9 @@ cropped_img.save('cropped_image.png')  # 保存截取的图像
     \end{figure}
 
     \begin{itemize}
-        \item 左：Lena原图，(512, 512, 3)
-        \item 中：[::2, :, :]，(256, 512, 3)，每隔一个像素取一个，得到一个压缩的图像
-        \item 右：[:, ::-1, :]，(512, 512, 3)，将图像水平翻转
+        \item 左：Lena原图，形状(512, 512, 3)
+        \item 中：切片[::2, :, :]，形状(256, 512, 3)，每隔一个像素取一个，得到一个压缩的图像
+        \item 右：切片[:, ::-1, :]，形状(512, 512, 3)，将图像水平翻转
     \end{itemize}
 
 \end{frame}
