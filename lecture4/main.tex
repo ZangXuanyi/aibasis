@@ -1,0 +1,514 @@
+\documentclass{ctexbeamer}
+\usepackage{minted}
+\usepackage{graphicx}
+% \usepackage[english]{babel}
+\usepackage[bibstyle=alphabetic, backend=biber, sorting=ynt]{biblatex}
+\usepackage{amssymb, amsmath, amsfonts}
+
+\addbibresource{references.bib}
+
+\usefonttheme{serif}
+\usetheme{CambridgeUS}
+
+\setlength{\parskip}{0.5em}
+
+\setminted{
+    baselinestretch=1.0,       % 行间距
+    frame=single,           % 边框样式
+    framesep=2mm,              % 边框间距
+    rulecolor=\color{black},   % 边框颜色
+    breaklines=true,           % 自动换行
+    breakanywhere=false,       % 不在任意位置断行
+    showspaces=false,          % 不显示空格
+    showtabs=false,            % 不显示制表符
+    tabsize=4,                 % 制表符大小
+}
+
+\title{第四次上机课}
+\author{臧炫懿}
+\date{\today}
+
+\begin{document}
+\begin{frame}
+\maketitle
+\end{frame}
+
+\begin{frame}
+    \frametitle{神经网络中的归一化}
+
+    面经八股：“归一化”（Normalization）是指将数据或特征缩放到一个特定范围内的过程。
+    
+    \vspace{1em}
+
+    所以应当容易理解：
+    \begin{itemize}
+        \item 我们上节课讲的\(\sigma(x) = 1/(1 + e^{-x})\)实际上也是一种归一化方法；
+        \item \(\tanh(x) = (e^x - e^{-x})/(e^x + e^{-x})\)也是一种归一化方法。
+        \item ReLU（Rectified Linear Unit）\(f(x) = \max(0, x)\)不是归一化方法。
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{所以，归一化实际上究竟在干什么？}
+
+    我刚刚说的这个定义其实\textbf{一点用都没有}。学习需要透过现象看本质。
+    
+    归一化的本质是\textbf{让数据分布更好}。
+
+    最常见的两个例子是：批量归一化（Batch Normalization）和层归一化（Layer Normalization）。它们的核心思想都是通过对数据进行归一化来改善模型的训练过程。
+
+    \vspace{2em}
+
+    上节课说过，“好”不容易描述的，而“坏”却很容易描述的。我们先来看看“坏”的数据分布是什么样子的。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{坏的数据分布}
+
+    多说无益，不如算题。现在有一个神经网络（简单线性层，不放输出层）：$\hat{y} = \mathbf{W}^\top \mathbf{x} + b$，其中$\mathbf{W}, \mathbf{x} \in \mathbb{R}^{4}$，$b \in \mathbb{R}$。损失函数：$\mathcal{L} = \frac{1}{2}(\hat{y} - y)^2$，其中$y \in \mathbb{R}$是标签。容易得知，这是一个四维空间内的线性回归问题（之所以不说是“二分类问题”，是因为没有进行输出映射）。
+
+    初始情况下，$\mathbf{W} = [1, 1, 1, 1]^\top$，$b = 0$。
+
+    \begin{itemize}
+        \item 现在输入是：$\mathbf{x} = [1, 2.5, -0.5, -1]^\top$，$y = 8$，手算一下反向传播的过程。
+        \item 现在输入是：$\mathbf{x} = [100, 250, -50, -100]^\top$，$y = 800$，同样手算一下反向传播的过程。
+    \end{itemize}
+    手算算不出来的可以写个Python脚本来算。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{计算的启示}
+
+    上述两个例子中，我们发现第二个例子的输入数据范围更大，导致了梯度的计算结果也更大。这可能会导致\textbf{梯度爆炸}的问题，使得模型训练变得不稳定。
+
+    实际上这就是归一化的最主要作用之一：我们发现，将第二个情形缩小100倍，正好就是第一个情形了。通过归一化，我们可以将输入数据的范围缩小到一个更合适的范围，从而避免梯度爆炸的问题，促进模型的稳定训练。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{正态分布和批量归一化}
+
+    那么现在的问题是：能不能给出一个较好的归一化手段，使得我们能把所有的输入数据都缩放到一个合适的范围内呢？答案是：可以的。
+
+    我们知道，当数据量极大的时候，许多数据的分布都会近似于正态分布：$\mathcal{N}(\mu, \sigma^2)$，其中$\mu$是均值，$\sigma^2$是方差。特别的，当$\mu=0$，$\sigma^2=1$时，称为标准正态分布。
+    
+    我们可以把任意一个正态分布的数据点$x$通过以下公式进行标准化：$z = \frac{x - \mu}{\sigma}$，得到一个标准化的正态分布。
+
+    \textbf{实际上这玩意就是所谓“批量归一化”的过程。}批量归一化是最常见的归一化逻辑：先取“一批”数据，然后计算它们的均值和方差，最后通过上述公式进行归一化处理。需要说明的是，我们只处理数据（$\mathbf{x}$），不处理标签（$y$）。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{于是……}
+    
+    对于线性层，批量归一化的过程可以表示为把$N \times D$的输入矩阵$\mathbf{X}$，变成$\hat{\mathbf{X}}$，然后再进行线性变换：
+\begin{align}
+\mu_B &= \frac{1}{N} \sum_{i=1}^{N} \mathbf{X}_i \\
+\sigma_B^2 &= \frac{1}{N} \sum_{i=1}^{N} (\mathbf{X}_i - \mu_B)^2 \\
+\hat{\mathbf{X}}_i &= \frac{\mathbf{X}_i - \mu_B}{\sqrt{\sigma_B^2 + \epsilon}} \\
+\mathbf{Y}_i &= \gamma \hat{\mathbf{X}}_i + \beta
+\end{align}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{但是，上述解释真的正确吗？}
+    
+    我们刚刚的解释是基于概率分布的，实际上就是：将每一层的输入分布都归一化到标准正态分布上，减少了所谓的内部协变量偏移，从而稳定乃至加速了训练\cite{ioffe2015batchnormalizationacceleratingdeep}。该假说被称作“ICS假说”（Internal Covariate Shift Hypothesis）。
+    
+    这种解释看上去没什么毛病，但细思之下其实有问题的：因为实际情况下，不管哪一层的输入都不可能严格满足正态分布，从而单纯地将均值方差标准化无法实现标准分布；其次，就算能做到标准分布，这种诠释也无法进一步解释其他归一化手段起作用的原因。\cite{kexuefm-6992}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{实践是检验真理的唯一标准}
+
+    多说无益，不如试验一下老旧的解释是否正确。设计三组对比实验\cite{santurkar2019doesbatchnormalizationhelp}：
+    \begin{enumerate}
+        \item 标准网络，不批量归一化。
+        \item 标准网络，且批量归一化。
+        \item 标准网络，且批量归一化，并且在归一化层后注入\textcolor{red}{故意破坏分布}的噪声，保证每个样本的噪声独立，且噪声的分布不满足正态分布，且噪声的量级足够大使得输入分布完全不稳定。
+    \end{enumerate}
+
+    如果 ICS 假说成立，那么加噪批量归一化的分布稳定性应比普通批量归一化差，训练效果也应更差。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{出乎意料的试验结果}
+
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.9\textwidth]{vgg_noise_grid.pdf}
+    \end{figure}
+    
+\end{frame}
+
+\begin{frame}
+    \frametitle{结论}
+    
+    观察这些实验结果，我们可以得出以下结论：
+    \begin{itemize}
+        \item 加噪 BN 的训练速度和最终精度与标准 BN \textcolor{red}{几乎一样}，但训练途中参数变化很不稳定。
+        \item 加噪 BN 的分布变化比标准网络\textcolor{blue}{还要大}
+        \item 后来做了对比试验，相同噪声加给标准网络，训练\textcolor{red}{完全失败}
+    \end{itemize}
+    分布稳定性与训练性能之间，没有直接因果关系\cite{santurkar2019doesbatchnormalizationhelp}！
+
+    论文的作者又做了些其余的试验，所有结果全都指向同一结论：\textbf{批量归一化的成功与 ICS 无关}。
+    
+    既然 ICS 假说不成立，那么批量归一化的成功究竟是为什么呢？其背后的数学原因，又是什么呢？这里也让同学们看看，描述一个事情“好”有多困难。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{所谓“优化稳定性”}
+
+    我们知道，机器学习的操作是给定信息求$y = f(x)$中的$f$，而其核心问题全都是\textbf{优化问题}，具体进行该操作的方法就是\textbf{梯度下降}。所以我们可以从优化的角度来分析一下批量归一化的成功原因。
+
+    换个角度思考：
+    \begin{itemize}
+        \item 我们不关心分布本身，关心优化过程的稳定性；
+        \item 训练是否稳定，取决于损失函数对参数的敏感程度；
+        \item 如果参数变化时，梯度变化过于剧烈，则训练不稳定，因此我们希望梯度的变化被一个常数所限制。
+    \end{itemize}
+
+    为了限制这种“梯度变化的程度”，我们可以引入一个非常重要的概念：李普希茨（Lipschitz）约束。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{李普希茨（Lipschitz）约束}
+
+    考虑李普希茨约束：对于函数$f$，如果存在一个常数$L$使得对于任意的$x_1$和$x_2$，都有$\|f(x_1) - f(x_2)\| \leq L \|x_1 - x_2\|$，则称$f$满足李普希茨条件。这个常数$L$被称为李普希茨常数。
+    
+    由于我们考量梯度，所以写出以下式子：
+    \begin{equation}\label{eq:lip1}
+        \left|\left|\nabla_\theta f(\theta + \Delta \theta) - \nabla_\theta f(\theta)\right|\right|_2 \leqslant L \|\Delta \theta\|_2
+    \end{equation}
+    上述式子的意思是：函数$f$的梯度在参数空间中的变化率被一个常数$L$所限制。换句话说，函数$f$的梯度不会发生剧烈的变化，而是以一个受控的方式变化。这两个下标的2表示我们使用的是欧几里得范数（L2范数），它测量了向量之间的距离。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{推论}
+
+    从李普希茨约束的定义出发，我们可以得出以下推论：
+    \begin{equation}\label{eq:lip2}
+        f(\theta + \Delta \theta) \leqslant f(\theta) + \left\langle \nabla_\theta f(\theta), \Delta \theta \right\rangle + \frac{L}{2} \left|\left|\Delta \theta\right|\right|_2^2
+    \end{equation}
+
+    证明不算太难，定义辅助函数$g(t) = f(\theta + t \Delta \theta), t \in [0, 1]$：
+    \begin{equation}
+        f(\theta + \Delta \theta) - f(\theta) = \int_0^1 \frac{\partial f(\theta + t \Delta \theta)}{\partial t} dt
+    \end{equation}
+    上式是微积分基本定理：$f(\theta + \Delta \theta) - f(\theta)=g(1)-g(0)$，可以表示为$g$对$t$的偏导数的积分。这一步看起来很“脱裤放屁”，但下一步便是魔法。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{论链式法则}
+
+    现在我们使用链式法则：$g(t) = f \circ h(t)$，其中$h(t) = \theta + t \Delta \theta$，这是一个向量值函数。
+    
+    于是$g'(t) = \nabla_\theta f(h(t)) \cdot h'(t)$，其中$h'(t) = \Delta \theta$。所以我们得到了以下式子：
+
+    \begin{equation}
+        \frac{\partial g}{\partial t} = \left\langle \nabla_\theta f(\theta + t \Delta \theta), \Delta \theta \right\rangle
+    \end{equation}
+
+    把这个带回去：
+    \begin{equation}
+        f(\theta + \Delta \theta) - f(\theta) = \int_0^1 \left\langle \nabla_\theta f(\theta + t \Delta \theta), \Delta \theta \right\rangle dt
+    \end{equation}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{超级拆解}
+
+    在$t=0$的地方，梯度显然是$\nabla_\theta f(\theta)$，所以我们对上述式子右半部分进行拆解：
+    \begin{equation}
+ \int_{0}^{1} \left\langle \nabla_\theta f(\theta), \Delta \theta \right\rangle dt + \int_{0}^{1} \left\langle \nabla_\theta f(\theta + t \Delta \theta) - \nabla_\theta f(\theta), \Delta \theta \right\rangle dt
+    \end{equation}
+
+    于是一项变成了两项，左边这项好处理些，实际就是$\left\langle \nabla_\theta f(\theta), \Delta \theta \right\rangle$。
+
+    右边是“误差”，需要一个上界。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{误差的上界}
+
+    把李普希茨约束\ref{eq:lip1}带入右边这项的内积中，我们发现：
+    \begin{equation}
+\left|\left|\nabla_\theta f(\theta + t \Delta \theta) - \nabla_\theta f(\theta)\right|\right|_2 \leqslant L \|t\Delta \theta\|_2 = Lt \|\Delta \theta\|_2
+    \end{equation}
+
+    因而上述误差被柯西-施瓦茨不等式限制：
+    \begin{align}
+\left\langle \nabla_\theta f(\theta + t \Delta \theta) - \nabla_\theta f(\theta), \Delta \theta \right\rangle &\leqslant \left|\left|\nabla_\theta f(\theta + t \Delta \theta) - \nabla_\theta f(\theta)\right|\right|_2 \cdot \left|\left|\Delta \theta\right|\right|_2 \\ &\leqslant Lt \|\Delta \theta\| \cdot \|\Delta \theta\|_2 \\&= Lt \|\Delta \theta\|_2^2
+    \end{align}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{于是上式变成了……}
+
+    那么现在的问题就变成怎么对误差进行积分了：
+    \begin{align}
+\int_0^1 \left[\cdots\right]\Delta\theta dt &\leqslant \int_0^1 Lt \|\Delta \theta\|_2^2 dt \\&= \frac{L}{2} \|\Delta \theta\|_2^2
+    \end{align}
+
+    于是我们得到了之前的式子\ref{eq:lip2}：
+    \begin{equation}
+        f(\theta + \Delta \theta) - f(\theta) \leqslant \left\langle \nabla_\theta f(\theta), \Delta \theta \right\rangle + \frac{L}{2} \|\Delta \theta\|_2^2
+    \end{equation}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{费牛大劲，有什么用？}
+
+    现在我们有了这个式子，于是假设$f(\theta)$是损失函数，我们的目标是最小化这个东西——
+    
+    既然是最小化，所以希望每一步都要下降；但是$\frac{L}{2} \|\Delta \theta\|_2^2 \geqslant 0$，所以想要下降，必须保证$\left\langle \nabla_\theta f(\theta), \Delta \theta \right\rangle < 0$。这样一个自然的选择自然就是
+\begin{equation}\label{eq:gd}
+\Delta \theta = -\eta \nabla_\theta f(\theta)
+\end{equation}
+    觉得眼熟？没错，这里的$\eta$就是学习率。所以我们得到了一个非常经典的梯度下降的更新公式：$\theta \leftarrow \theta - \eta \nabla_\theta f(\theta)$。
+
+    这不就和上节课的东西一样么！
+
+    当然，上述的推导过程比我们上节课基于牛顿优化法的推导要严格得多：我们上节课是“凭感觉知道海森矩阵的逆应当是正的”，所以直接把它丢掉，变成了一个常数；而这次我们是从李普希茨约束出发，严格地推导出了这个常数的上界。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{梯度下降的充分条件}
+
+    把梯度下降公式\ref{eq:gd}带入推论\ref{eq:lip2}中，我们发现：
+    \begin{equation}
+f(\theta + \Delta \theta) - f(\theta) \leqslant  \left(\frac{L}{2} \eta^2 - \eta\right) \|\nabla_\theta f(\theta)\|_2^2
+    \end{equation}
+    注意到保证损失函数下降的一个充分条件是$\frac{L}{2} \eta^2 - \eta < 0$，也就是说$\eta < \frac{2}{L}$。所以我们得到了一个非常重要的结论：
+    
+    \textbf{如果学习率小于$\frac{2}{L}$，那么梯度下降一定会使损失函数下降}。
+
+    为了做到这一点，要么让$\eta$变小，要么就让$L$足够小。但是前者变小意味着学习速度变慢，所以更理想的情况是后者，只要降低了李普希茨常数$L$，就可以使用更大的学习率，从而加速训练。
+
+    但$L$是什么呢？它是函数$f$的一个性质，和$f$的输入分布无关。
+
+    所以只能通过调整$f$来降低$L$。\textbf{归一化干的就是这个活}。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{所以批量归一化在干什么……}
+
+    以监督学习为例。设神经网络是$\hat{y} = h(x;\theta)$，损失函数取$\mathcal{L}(y,\hat{y})$，目标是
+    \begin{equation}
+        \theta = \arg\min_\theta \mathbb{E}_{(x,y) \sim \mathcal{D}} \left[\mathcal{L}(y, h(x;\theta))\right]
+    \end{equation}
+    其中$\mathcal{D}$是数据分布。
+
+    实际上这玩意就是
+    \begin{equation}
+        f(\theta) = \mathbb{E}_{(x,y) \sim \mathcal{D}} \left[\mathcal{L}(y, h(x;\theta))\right]
+    \end{equation}
+    求个梯度
+    \begin{align}
+        \nabla_\theta f(\theta) &= \mathbb{E}_{(x,y) \sim \mathcal{D}} \left[\nabla_\theta \mathcal{L}(y, h(x;\theta))\right] \\
+        &= \mathbb{E}_{(x,y) \sim \mathcal{D}} \left[\nabla_h \mathcal{L}(y, h(x;\theta))\nabla_\theta h(x ; \theta)\right]
+    \end{align}
+\end{frame}
+
+\begin{frame}
+    \frametitle{我们的目的一定要达到}
+
+    我们刚才的目的实际就是探讨$\nabla_\theta f(\theta)$受到李普希茨约束的程度，以及降低$L$的方法。
+
+    那么讨论一个最简单的神经网络：$h(x; w, b) = g(\left\langle w, x \right\rangle + b)$，其中$g$是一个非线性函数。于是自然得到
+\begin{equation}
+\mathbb{E}_{(x,y) \sim \mathcal{D}}[\nabla_b f(w, b)] = \mathbb{E}_{(x,y) \sim \mathcal{D}}\left[\frac{\partial \mathcal{L}_{w, b}}{\partial g}g'(\left\langle w, x \right\rangle + b)\right]
+\end{equation}
+和
+\begin{equation}
+\mathbb{E}_{(x,y) \sim \mathcal{D}}[\nabla_w f(w, b)] = \mathbb{E}_{(x,y) \sim \mathcal{D}}\left[\frac{\partial \mathcal{L}_{w, b}}{\partial g}g'(\left\langle w, x \right\rangle + b) x\right]
+\end{equation}
+\end{frame}
+
+\begin{frame}
+    \frametitle{我们的目的一定能够达到}
+
+    先分析$b$的梯度，这个好分析些。
+
+    在一般情况下，激活函数都满足一个特性：其导数的绝对值被一个常数$M$所限制，即$|g'(z)| \leq M$。那么，这个特性对损失函数是否成立？答案显然是不成立的，至少通常情况下是不成立的。比如交叉熵可以简写为$-\sum\log p$，显然导数是$-\frac{1}{p}$，不存在约束。
+
+    但损失函数连同最后一层的激活函数（输出层）一起考虑的时候（比如套上sigmoid），则通常满足这个约束。
+
+    当然，确实存在一些情况不成立，例如回归问题用MSE且最后一层不加激活函数输出层的情况。这种情况下我们只能期望模型有良好的初始化和优化器，使得训练过程中损失函数的梯度比较稳定（实际上能训练成功的神经网络大多满足这个条件）。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{假设的重述，以及$b$的梯度}
+
+    所以我们得到两个假设：
+    \begin{itemize}
+        \item 激活函数的导数被一个常数$M$所限制。
+        \item 损失函数连同输出层的激活函数一起考虑时，其导数的绝对值被一个常数$N$所限制。
+    \end{itemize}
+
+    所以在上述式子中，我们看到$\frac{\partial \mathcal{L}_{w, b}}{\partial g}$和$g'(\left\langle w, x \right\rangle + b)$分别被$N$和$M$所限制，其梯度平稳。
+
+    于是现在该考虑$w$的梯度：和这个不一样，其梯度和$x$有关。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{继续超级拆解}
+
+    我们应当能够得到以下内容：
+    \begin{align}
+        & \left|\left|\mathbb{E}_{(x,y) \sim \mathcal{D}}[\nabla_w f(w+\Delta w, b)] - \mathbb{E}_{(x,y) \sim \mathcal{D}}[\nabla_w f(w, b)]  \right|\right|_2 \\
+        =& \left|\left|\mathbb{E}_{(x,y) \sim \mathcal{D}}\left[\frac{\partial \mathcal{L}_{w+\Delta w, b}}{\partial g}g'(\left\langle w+\Delta w, x \right\rangle + b) x - \frac{\partial \mathcal{L}_{w, b}}{\partial g}g'(\left\langle w, x \right\rangle + b) x\right]  \right|\right|_2
+    \end{align}
+
+    提取公因式$x$，得到
+    \begin{equation}
+        \left(\frac{\partial \mathcal{L}_{w+\Delta w, b}}{\partial g}g'(\left\langle w+\Delta w, x \right\rangle + b) - \frac{\partial \mathcal{L}_{w, b}}{\partial g}g'(\left\langle w, x \right\rangle + b)\right) x
+    \end{equation}
+    左边这玩意有点眼熟啊。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{柯西不等式}
+
+    根据前面的讨论，左边这玩意被约束在某个范围内，所以依然是平稳项。既然如此，不如假设它满足L约束并进行超级简化，给它取个名字叫“something good”，那么我们就得到了以下式子：
+
+    \begin{align}
+& \left|\left|\mathbb{E}_{(x,y) \sim \mathcal{D}}\left[(\text{something good} \times x)\right]\right|\right| \\
+\leqslant & \sqrt{\mathbb{E}_{(x,y) \sim \mathcal{D}}[\text{something good}^2] \cdot \mathbb{E}_{(x,y) \sim \mathcal{D}}[\|x\|_2^2]} \\
+    \end{align}
+
+    看，参数$\mathbb{E}_{(x,y) \sim \mathcal{D}}[\|x\|_2^2]$！这东西和参数无关，我们希望降低$L$，完全可以从这个东西入手！
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{功成事遂，百姓皆谓我自然}
+
+    当然，我们虽然希望降低$L$，前提自然是不要明显降低神经网络的拟合能力。
+
+    所以降低$\mathbb{E}_{(x,y) \sim \mathcal{D}}[\|x\|_2^2]$。这是一个非常直接的做法，只需要对输入进行相应的变换。
+
+    在“不降低拟合能力”的前提下，显然平移变换是一个非常好的选择，故而考虑映射$x \mapsto x - \mu$，使得下列式子最小。
+
+    \begin{equation}
+\mathbb{E}_{(x,y) \sim \mathcal{D}}[\|x - \mu\|_2^2]
+    \end{equation}
+
+    这是个二次函数的最小值问题。不难解得$\mu$是样本均值时最优。故而——
+
+    \textbf{所以批量归一化的第一步：中心化能够显著降低李普希茨常数，从而加速训练}。
+    
+\end{frame}
+
+\begin{frame}
+    \frametitle{功成事遂，百姓皆谓我自然（2）}
+
+    除了平移变换，还有伸缩变换也是一个不错的选择，考虑映射$x-\mu \mapsto (x-\mu) / \sigma$。这里的$\sigma$是一个和$x$形状一样的向量，规定这里的向量除法是逐元素除法，于是问题还是最小化下列式子：
+    \begin{equation}
+\mathbb{E}_{(x,y) \sim \mathcal{D}}[\|(x - \mu) / \sigma\|_2^2]
+\end{equation}
+    
+    但是问题是：缩放到哪里比较好？如果一味追求很小的$L$，那直接$\sigma \to \infty$不就好了么？显然不行，因为这会导致模型的拟合能力大幅下降。所以我们需要一个折中方案。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{功成事遂，百姓皆谓我自然（3）}
+    回看$b$的梯度：
+    \begin{equation}
+\mathbb{E}_{(x,y) \sim \mathcal{D}}[\nabla_b f(w, b)] = \mathbb{E}_{(x,y) \sim \mathcal{D}}\left[\frac{\partial \mathcal{L}_{w, b}}{\partial g}g'(\left\langle w, x \right\rangle + b)\right]
+\end{equation}
+
+    我们发现偏置项的梯度不会被$x$影响，所以它大概率会是一个较好的标准。要是果真如此，那就相当于把输入$x$的这一项权重直接缩放到1了，换言之$\mathbb{E}_{(x,y) \sim \mathcal{D}}[\|(x - \mu) / \sigma\|_2^2]$是一个全1向量。
+
+    那么一个相对自然的选择就是把$\sigma$选成样本的标准差了。于是我们得到了批量归一化的第二步：缩放。
+
+    所以\textbf{批量归一化的第二步：缩放，不一定能降低李普希茨常数。但是这东西有类似学习率自适应的作用，使得每一层的更新更同步，减少了在某一个特定的层上过拟合的可能性，能提升模型的泛化能力}。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{水到渠成}
+
+    有了这两个推导过程，那么我们就能发现BN究竟是个什么东西了。
+
+    BN的本质是在降低李普希茨常数，从而使得训练更稳定，能够使用更大的学习率，进而加速训练。
+
+    当然，这个分析过程的另两个结论是：
+    \begin{itemize}
+        \item BN要放在线性层（或卷积层）的前面，因为它是对输入进行变换的。
+        \item BN不能避免的是batch size要大些（因为希望$\mu$和$\sigma$的估计更准确），在小batch size的情况下，BN的效果会大打折扣，对算力提出了要求。
+    \end{itemize}
+    为了解决这些问题，所以才有了层归一化（Layer Normalization）等其他归一化方法的出现。但单论效果而言，批归一化的效果还是一骑绝尘的。
+\end{frame}
+
+\begin{frame}
+    \frametitle{新的归一化范式}
+
+    回看这些式子：
+\begin{align}
+\mu_B &= \frac{1}{N} \sum_{i=1}^{N} \mathbf{X}_i \\
+\sigma_B^2 &= \frac{1}{N} \sum_{i=1}^{N} (\mathbf{X}_i - \mu_B)^2 \\
+\hat{\mathbf{X}}_i &= \frac{\mathbf{X}_i - \mu_B}{\sqrt{\sigma_B^2 + \epsilon}} \\
+\mathbf{Y}_i &= \gamma \hat{\mathbf{X}}_i + \beta
+\end{align}
+
+    我们发现，这里是对\textbf{整个batch进行归一化}，所以叫批量归一化；如果我们把这里的batch换成单个样本，会发生什么？
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{换成单个样本以后}
+
+\begin{align}
+\mu_i &= \frac{1}{D} \sum_{j=1}^{D} \mathbf{X}_{ij} \\
+\sigma_i^2 &= \frac{1}{D} \sum_{j=1}^{D} (\mathbf{X}_{ij} - \mu_i)^2 \\
+\hat{\mathbf{X}}_{ij} &= \frac{\mathbf{X}_{ij} - \mu_i}{\sqrt{\sigma_i^2 + \epsilon}} \\
+\mathbf{Y}_{ij} &= \gamma \hat{\mathbf{X}}_{ij} + \beta
+\end{align}
+
+这是对这个\textbf{输入向量本身}进行归一化。该归一化的方式被称作“层归一化”，它的效果也不错，尤其是在小batch size的情况下。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{层归一化的原理}
+
+    其实这个东西的原理和批量归一化是一样的，因为在“小batch”的情况下，层归一化和批量归一化的效果是差不多的。只是层归一化的计算效率更高一些，因为它不需要计算整个batch的均值和方差。
+
+当然，batch size一大，这玩意就不行了，因为层归一化的均值和方差是基于单个样本的，所以它无法利用整个batch的信息来进行归一化处理，从而导致训练效果不佳。
+
+但是有些时候不用这个还不行，因为在一些情况下（我甚至可以直接告诉你这种情况的名字叫“循环神经网络”），输入的长度不固定，所以无法使用批量归一化，这时候层归一化就派上用场了。
+
+另一种情况是这个算得快，所以多用于一些算力比较紧张的场景，例如移动端的模型，或在线计算的模型。所谓“在线计算”者，指的是需要即时性的算法（尤其是那种不能等整个batch都准备好了才能进行计算的算法），例如强化学习中的一些算法，或一些需要实时响应的算法。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{参考文献}
+
+    \printbibliography
+
+\end{frame}
+
+\end{document}

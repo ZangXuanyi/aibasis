@@ -1,0 +1,316 @@
+\documentclass[
+    UTF8,
+    a4paper,
+    12pt
+]{ctexart}
+
+\usepackage{amssymb, amsmath, amsfonts}
+\usepackage{amsthm}
+
+\newtheorem{definition}{定义}
+\newtheorem{theorem}{定理}
+\newtheorem{lemma}{引理}
+\newtheorem{corollary}{推论}
+\newtheorem{example}{例}
+
+\title{\textbf{对张量函数求导的严格定义}}
+\author{一位不愿透露姓名的同学, 臧炫懿}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+上节上机课，我们讲了机器学习中的一个重要方法：利用微分的链式法则来计算复杂函数的导数。当时大致是这样的：
+
+\begin{example}
+    假设多层神经网络
+    \begin{align}
+        h_1 &= f_1(x, \theta_1) \\
+        h_2 &= f_2(h_1, \theta_2) \\
+        \vdots \\
+        h_n &= f_n(h_{n-1}, \theta_n)
+    \end{align}
+    对应的损失函数为$\mathcal{L}(h_n, y)$，其中$y$是标签。我们想要计算$\frac{\partial \mathcal{L}}{\partial \theta_i}$，可以通过链式法则得到：
+    \begin{equation}
+        \frac{\partial \mathcal{L}}{\partial \theta_i} = \frac{\partial \mathcal{L}}{\partial h_n} \cdot \frac{\partial h_n}{\partial h_{n-1}} \cdots \frac{\partial h_{i+1}}{\partial h_i} \cdot \frac{\partial h_i}{\partial \theta_i}
+    \end{equation}
+\end{example}
+
+在上节课上课的时候，我确实提到过这是“非常不严谨”的做法，但因为形式上正确、结果也正确，所以我们没有细究其过程，暂且认为是对的；“可能学数学的同学见到这一步会生气，但我们暂时不去管他”。
+
+于是课后就有一位不愿透露姓名的数院同学，“出于SMS人的洁癖”，向我提出了她对这个问题的看法，并向我提交了一份简略的手写报告，讲述对张量函数求导的严格定义。经过她的允许，我将她的这篇报告排版成了这篇文章，并且在此基础上做了一些修改和补充，以使其内容更加完整和清晰。希望这篇文章能够帮助大家更好地理解张量函数求导的严格定义。
+
+\section{张量（数学）}
+
+在计算机上，我们知道 \verb|torch.tensor| 是一个一维或多维的数组，可以存储各种类型的数据，如整数、浮点数等。它是PyTorch中最基本的数据结构之一，支持各种数学运算和自动求导功能。
+
+tensor直译过来，就是\textbf{张量}。
+
+在数学中，张量存在如下严格的定义：
+\begin{definition}[张量]
+    张量是一个多线性映射，可以看作是一个多维数组，具有特定的变换性质。具体来说，张量可以定义为一个在某个向量空间上具有特定秩和类型的对象。
+\end{definition}
+这是一个比较抽象的说法。不太严谨的说，在数学上对“张量”的定义其实和我们在计算机上使用的 \verb|torch.tensor| 差不太多。
+
+张量能够执行基本的数学运算。
+\begin{itemize}
+    \item 张量的\textbf{加法}是逐元素的加法，即对应位置的元素相加（因此需要保证两个张量的形状相同，除非进行广播）。
+    \item 张量的\textbf{乘法}可以有多种形式，最简单的如Hadamard乘法（逐元素乘法）。除此之外还有所谓“张量积”，它是一个更复杂的运算，涉及到张量的秩和类型，难度极高，远远超出了我们目前的讨论范围。
+    \item 张量的\textbf{数乘}是指将一个标量乘以张量的每个元素。
+    \item 张量的\textbf{维度重排}是指改变张量形状但不改变其数据内容的操作，具体定义要用到“张量指标”概念，也是晦涩难懂的，我们暂时不去管它。 
+\end{itemize}
+
+\section{张量函数求导的严格定义}
+
+约定记号：假设函数$f$的输入是一个张量$\mathbf{x}$。一般地，记$f$对$\mathbf{x}$的梯度为$\nabla_\mathbf{x} f$。
+
+对于后者的$\nabla$，一般读作“Nabla”，表示梯度算子，即$\nabla_\mathbf{x} f$表示函数$f$在输入$\mathbf{x}$处的梯度。梯度和偏导数的区别在于，梯度往往是一个向量，包含了函数在每个输入维度上的偏导数，而偏导数通常指的是函数在某个特定输入维度上的导数。但严格区分这两个概念在这里也并不重要，因为在这里它们就是同一个东西。
+
+\subsection{当$\mathbf{x}\in\mathbb{R}^n$，$f(\mathbf{x})\in \mathbb{R}$时}
+
+首先从最简单的张量函数开始，考虑一个标量函数$f: \mathbb{R}^n \to \mathbb{R}$，它接受一个$n$维向量作为输入，并输出一个标量。
+
+对于这样的函数，我们可以定义它的梯度$\nabla f$，这是一个$n$维向量，表示函数在每个输入维度上的偏导数。将其形式化如下：
+\begin{definition}[梯度]
+    给定一个标量函数$f: \mathbb{R}^n \to \mathbb{R}$，它的梯度$\nabla_\mathbf{x} f$是一个$n$维向量，定义为：
+    \begin{equation}
+        \nabla_\mathbf{x} f = \left( \frac{\partial f}{\partial x_1}, \frac{\partial f}{\partial x_2}, \ldots, \frac{\partial f}{\partial x_n} \right)
+    \end{equation}
+\end{definition}
+
+\begin{example}
+    考虑张量函数：$f(\mathbf{x}) = x_1^2 + x_1 x_2 + x_2 x_3$，其中$\mathbf{x} = (x_1, x_2, x_3)^\top$是一个三维向量。我们可以计算它的梯度$\nabla_\mathbf{x} f = \left( \frac{\partial f}{\partial x_1}, \frac{\partial f}{\partial x_2}, \frac{\partial f}{\partial x_3} \right)^\top$。
+    \begin{align}
+        \frac{\partial f}{\partial x_1} &= 2x_1 + x_2 \\
+        \frac{\partial f}{\partial x_2} &= x_1 + x_3 \\
+        \frac{\partial f}{\partial x_3} &= x_2
+    \end{align}
+    因此，梯度$\nabla_\mathbf{x} f$为：
+    \begin{equation}
+        \nabla_\mathbf{x} f = \begin{pmatrix}
+            2x_1 + x_2 \\
+            x_1 + x_3 \\
+            x_2
+        \end{pmatrix}
+    \end{equation}
+
+    同理梯度$\nabla_{\mathbf{x}^\top} f$为：
+    \begin{equation}
+        \nabla_{\mathbf{x}^\top} f = \begin{pmatrix}
+            2x_1 + x_2 & x_1 + x_3 & x_2
+        \end{pmatrix}
+    \end{equation}
+
+    假设现在要求微分$\mathrm{d}f$，我们可以使用梯度的定义来计算：
+    \begin{equation}
+        \mathrm{d}f = \nabla_{\mathbf{x}^\top} f \times \mathrm{d}\mathbf{x} = (2x_1 + x_2) \mathrm{d}x_1 + (x_1 + x_3) \mathrm{d}x_2 + x_2 \mathrm{d}x_3
+    \end{equation}
+\end{example}
+
+\subsection{当$\mathbf{x}\in\mathbb{R}^{m\times n}$，$f(\mathbf{x})\in \mathbb{R}$时}
+
+此时，输入张量$\mathbf{x}$是一个$m$行$n$列的矩阵。对于这样的函数，我们按上面的定义依葫芦画瓢，定义它的梯度$\nabla_\mathbf{x} f$也是一个$m$行$n$列的矩阵，表示函数在每个输入元素上的偏导数。形式化定义如下：
+\begin{definition}[矩阵函数的梯度]
+    给定一个标量函数$f: \mathbb{R}^{m \times n} \to \mathbb{R}$，它的梯度$\nabla_\mathbf{x} f$是一个$m$行$n$列的矩阵，定义为：
+    \begin{equation}
+        \nabla_\mathbf{x} f = \begin{pmatrix}
+            \frac{\partial f}{\partial x_{11}} & \frac{\partial f}{\partial x_{12}} & \cdots & \frac{\partial f}{\partial x_{1n}} \\
+            \frac{\partial f}{\partial x_{21}} & \frac{\partial f}{\partial x_{22}} & \cdots & \frac{\partial f}{\partial x_{2n}} \\
+            \vdots & \vdots & \ddots & \vdots \\
+            \frac{\partial f}{\partial x_{m1}} & \frac{\partial f}{\partial x_{m2}} & \cdots & \frac{\partial f}{\partial x_{mn}}
+        \end{pmatrix}
+    \end{equation}
+\end{definition}
+具体实例略，参考上文。
+
+\subsection{当$\mathbf{x}\in\mathbb{R}^{n}$，$f(\mathbf{x})\in \mathbb{R}^{p}$时}
+
+现在我们终于来到了第一个难以理解的情况：输入是向量，输出也是向量。接下来要分三种情况讨论。
+
+\subsubsection{第一种情况：$\mathbf{x}$是列向量，$f(\mathbf{x})$是行向量}
+
+在这时，我们可以这么看：设$f(\mathbf{x}) = (f_1(\mathbf{x}), f_2(\mathbf{x}), \ldots, f_p(\mathbf{x}))$，其中每个$f_i(\mathbf{x})$都是一个标量函数。我们可以分别计算每个$f_i$的梯度$\nabla_\mathbf{x} f_i$，它们都是一个$n$维列向量。然后将这些梯度按行排列起来，就得到了一个$p$行$n$列的矩阵，这个矩阵就是函数$f$的雅可比矩阵（Jacobian matrix）。形式化定义如下：
+\begin{definition}[雅可比矩阵]
+    给定一个向量函数$f: \mathbb{R}^n \to \mathbb{R}^p$，它的雅可比矩阵$J_f$是一个$p$行$n$列的矩阵，定义为：
+    \begin{equation}
+        J_f = \begin{pmatrix}
+            \nabla_\mathbf{x} f_1 \\
+            \nabla_\mathbf{x} f_2 \\
+            \vdots \\
+            \nabla_\mathbf{x} f_p
+        \end{pmatrix} = \begin{pmatrix}
+            \frac{\partial f_1}{\partial x_1} & \frac{\partial f_1}{\partial x_2} & \cdots & \frac{\partial f_1}{\partial x_n} \\
+            \frac{\partial f_2}{\partial x_1} & \frac{\partial f_2}{\partial x_2} & \cdots & \frac{\partial f_2}{\partial x_n} \\
+            \vdots & \vdots & \ddots & \vdots \\
+            \frac{\partial f_p}{\partial x_1} & \frac{\partial f_p}{\partial x_2} & \cdots & \frac{\partial f_p}{\partial x_n}
+        \end{pmatrix}
+    \end{equation}
+    一般简记为：
+    \begin{equation}
+        (J_f)_{ij} = \frac{\partial f_i}{\partial x_j}
+    \end{equation}
+\end{definition}
+
+由此可见，张量函数的梯度形状（如维数）可能要比输入输出张量的维数还高，因为它需要包含所有输入输出元素之间的偏导数关系。
+
+\subsubsection{第二种情况：$\mathbf{x}$是行向量，$f(\mathbf{x})$是列向量}
+
+这种情况和第一种情况类似，只不过输入输出的维度方向相反。我们同样可以定义雅可比矩阵，但这次是一个$n$行$p$列的矩阵，定义如下：
+\begin{definition}[雅可比矩阵（行向量输入）]
+    给定一个向量函数$f: \mathbb{R}^n \to \mathbb{R}^p$，其中输入$\mathbf{x}$是一个行向量，输出$f(\mathbf{x})$是一个列向量。它的雅可比矩阵$J_f$是一个$n$行$p$列的矩阵，定义为：
+    \begin{equation}
+        (J_f)_{ij} = \frac{\partial f_j}{\partial x_i}
+    \end{equation}
+\end{definition}
+
+\subsubsection{第三种情况：$\mathbf{x}$和$f(\mathbf{x})$都是列向量（或者都是行向量）}
+
+这种情况是最难理解的，但也是最特殊的情况。因为我们在前两种情况积累下来的经验都失效了。我们先前的做法是把$f$拆开，分别计算每个输出元素的梯度，然后把它们按行或按列排列成一个矩阵。但现在输入输出的维度方向相同了，这种做法就不再适用了。
+
+但在大多数数学、优化、机器学习的文献中，都\textbf{默认}输入总是列向量，输出也总是列向量；却将雅可比矩阵定义为
+\begin{equation}
+    (J_f)_{ij} = \frac{\partial f_i}{\partial x_j}
+\end{equation}
+这个和第一种情况的定义完全一样，都是一个$p$行$n$列的矩阵。虽然看起来很奇怪，但这是约定俗成，我们也只能接受这个事实了。
+
+因此，我们可以直接套用第一种情况的定义，定义雅可比矩阵为一个$p$行$n$列的矩阵，定义如下：
+\begin{definition}[雅可比矩阵（同向量输入输出）]
+    给定一个向量函数$f: \mathbb{R}^n \to \mathbb{R}^p$，其中输入$\mathbf{x}$和输出$f(\mathbf{x})$都是列向量。它的雅可比矩阵$J_f$是一个$p$行$n$列的矩阵，定义为：
+    \begin{equation}
+        (J_f)_{ij} = \frac{\partial f_i}{\partial x_j}
+    \end{equation}
+\end{definition}
+如果输入输出都是行向量，可视为上述情形的转置，套用第二种定义即可。
+
+\subsection{最终情形：如果输入和输出都是任意张量……}
+
+如果输入和输出都是矩阵，那么我们就需要定义一个更高维的对象来表示它的梯度了。这个对象就是所谓的\textbf{四阶张量}，它是一个四维数组，包含了所有输入输出元素之间的偏导数关系。具体定义如下：
+\begin{definition}[四阶张量]
+    给定一个矩阵函数$f: \mathbb{R}^{m \times n} \to \mathbb{R}^{p \times q}$，它的梯度$\nabla_\mathbf{x} f$是一个四阶张量，定义为一个四维数组，表示函数在每个输入输出元素上的偏导数。具体来说，$\nabla_\mathbf{x} f$是一个$p$行$q$列的矩阵，每个元素又是一个$m$行$n$列的矩阵，定义如下：
+    \begin{equation}
+        (\nabla_\mathbf{x} f)_{ij} = \begin{pmatrix}
+            \frac{\partial f_{ij}}{\partial x_{11}} & \frac{\partial f_{ij}}{\partial x_{12}} & \cdots & \frac{\partial f_{ij}}{\partial x_{1n}} \\
+            \frac{\partial f_{ij}}{\partial x_{21}} & \frac{\partial f_{ij}}{\partial x_{22}} & \cdots & \frac{\partial f_{ij}}{\partial x_{2n}} \\
+            \vdots & \vdots & \ddots & \vdots \\
+            \frac{\partial f_{ij}}{\partial x_{m1}} & \frac{\partial f_{ij}}{\partial x_{m2}} & \cdots & \frac{\partial f_{ij}}{\partial x_{mn}}
+        \end{pmatrix}
+    \end{equation}
+\end{definition}
+
+我们发现这种情况实际上也就是上述情况的延伸罢了。
+
+对于更高维度的张量其实也是类似的道理，我们需要定义一个更高阶的张量来表示它的梯度。
+
+\section{张量梯度的运算法则}
+
+我们不妨把上述张量梯度的定义简单写成以下的形式：
+\begin{equation}
+    \nabla_\mathbf{x} f = \left( \frac{\partial f_i}{\partial x_j} \right)
+\end{equation}
+其中$i$和$j$分别表示输出和输入的索引。这东西可以递归，具体$f(x)$和$x$是什么东西并不重要，只要不是标量，就可以继续套用这个定义来计算它的梯度。
+
+所以应当容易证明以下三条老生常谈的运算法则：
+\begin{theorem}[线性运算法则]
+    给定两个张量函数$f$和$g$，以及一个标量$\alpha$，满足以下关系：
+    \begin{equation}
+        \nabla_\mathbf{x} (f + g) = \nabla_\mathbf{x} f + \nabla_\mathbf{x} g
+    \end{equation}
+    \begin{equation}        
+        \nabla_\mathbf{x} (\alpha f) = \alpha \nabla_\mathbf{x} f
+    \end{equation}
+\end{theorem}
+
+\begin{theorem}[乘积法则]
+    给定两个张量函数$f$和$g$，满足以下关系：
+    \begin{equation}
+        \nabla_\mathbf{x} (f \cdot g) = f \cdot \nabla_\mathbf{x} g + g \cdot \nabla_\mathbf{x} f
+    \end{equation}
+\end{theorem}
+
+\begin{theorem}[除法法则]
+    给定两个张量函数$f$和$g$，满足以下关系：
+    \begin{equation}
+        \nabla_\mathbf{x} \left( \frac{f}{g} \right) = \frac{g \cdot \nabla_\mathbf{x} f - f \cdot \nabla_\mathbf{x} g}{g^2}
+    \end{equation}
+\end{theorem}
+
+当然，上述三条定理的成立前提都是梯度存在且在特定点可微；对于最后一条也自然要加一句“$g^2$在该点不为零且能求逆”。求逆自然涉及到“单位张量”，但单位张量怎么去构造本身就是一个比较麻烦的问题：单对一个矩阵求逆，就已经很困难了！
+
+至于证明，我们以乘积法则为例，其他的证明类似。我们可以使用定义来证明乘积法则。设$h = f \cdot g$，我们需要证明$\nabla_\mathbf{x} h = f \cdot \nabla_\mathbf{x} g + g \cdot \nabla_\mathbf{x} f$。根据定义，我们有：
+\begin{equation}
+    (\nabla_\mathbf{x} h)_{ij} = \frac{\partial h_i}{\partial x_j} = \frac{\partial (f_i \cdot g_i)}{\partial x_j}
+\end{equation}
+根据标量函数的乘积法则，我们可以得到：
+\begin{equation}
+    \frac{\partial (f_i \cdot g_i)}{\partial x_j} = f_i \cdot \frac{\partial g_i}{\partial x_j} + g_i \cdot \frac{\partial f_i}{\partial x_j}
+\end{equation}
+因此，我们可以将其写成矩阵形式：
+\begin{equation}
+    \nabla_\mathbf{x} h = f \cdot \nabla_\mathbf{x} g + g \cdot \nabla_\mathbf{x} f
+\end{equation}
+这就证明了乘积法则的正确性。
+
+当然，我们更关心的是链式法则，但基本上把上面这套证明过程抄一遍就行了，于是得到定理：
+\begin{theorem}[链式法则]
+    给定两个张量函数$f$和$g$，满足以下关系：
+    \begin{equation}
+        \nabla_\mathbf{x} (f \circ g) = \nabla_\mathbf{y} f \cdot \nabla_\mathbf{x} g
+    \end{equation}
+    其中$\mathbf{y} = g(\mathbf{x})$。
+\end{theorem}
+
+所以说“看到这一步可能学数学的同学会生气”，实际上生气早了，深入研究下去还真就是那么一回事。
+
+\section{$f(\mathbf{x})=\mathbf{W}^\top\mathbf{x}+\mathbf{b}$中$f$对$\mathbf{W}$的梯度到底是什么？}
+
+最后，我们回到上节课上我们讨论的那个例子：$f(\mathbf{x})=\mathbf{W}^\top\mathbf{x}+\mathbf{b}$，其中$\mathbf{W}$是一个权重矩阵，$\mathbf{b}$是一个偏置向量。
+
+其中，$\mathbf{x} = (x_1, x_2, \ldots, x_n)^\top$是一个$n$维列向量，$\mathbf{W}$是一个$m$行$n$列的矩阵，$\mathbf{b}$是一个$m$维列向量，那么函数$f$的输出是一个$m$维列向量。我们想要计算$f$对$\mathbf{W}$的梯度$\nabla_\mathbf{W} f$。
+
+上节上机课我们直接闭着眼睛求偏导数，得到了一个看起来很不严谨的结果：$\nabla_\mathbf{W} f = \mathbf{x}$。实际上从刚才的讨论我们也得知，这个结果是“错的”，因为根据定义，$\nabla_\mathbf{W} f$应该是一个\textbf{三阶张量}，形状是$(m, m, n)$，而不是一个$n$维向量；但这个结果的数值是正确的，因为它确实包含了每个输入元素对输出的影响程度。
+
+现在，我们有了张量求导的严格视角，正好可以重新算一遍，把这个“直觉”和“严谨”之间的差距讲清楚。
+
+我们要的是$\nabla_\mathbf{W} f$。
+
+对于每一个$f$，我们都可以计算它对$\mathbf{W}$的梯度$\nabla_{\mathbf{W}} f_i$，它是一个$m$行$n$列的矩阵。然后将这些梯度按行排列起来，就得到了一个$m$行$n$列的矩阵，这个矩阵就是函数$f$对$\mathbf{W}$的雅可比矩阵。
+
+或更简单的写为：
+\begin{equation}
+    (\nabla_\mathbf{W} f)_{i, j, k} = \frac{\partial f_i}{\partial W_{jk}}
+\end{equation}
+
+具体来说，我们有：
+\begin{equation}
+    f_i(\mathbf{x}) = \sum_{k=1}^n W_{ik} x_k + b_i
+\end{equation}
+这里的$\mathbf{W}_i$表示$\mathbf{W}$的第$i$行，$b_i$表示$\mathbf{b}$的第$i$个元素。\textbf{发现其他行对函数值没有贡献，所以其梯度为零。}因此，我们知道了，对于每一个$i$，$\nabla_\mathbf{W} f_i$是一个$m$行$n$列的矩阵，其中第$i$行是$\mathbf{x}$，其他行都是零。
+
+于是得到一个三阶张量，简写为：
+\begin{equation}
+    (\nabla_\mathbf{W} f)_{i, j, k} =  \frac{\partial f_i}{\partial W_{jk}} = \begin{cases}
+        x_k, & \text{if } j = i \\
+        0, & \text{otherwise}
+    \end{cases}
+\end{equation}
+其中，$i$表示输出的索引，$j$表示输入的索引，$k$表示权重矩阵$\mathbf{W}$的列索引。这个形式才是严格正确的结果。
+
+应该可以想象得到，这东西有点类似三维空间中的楼梯形状。
+
+所以说我们先前求出来的这个结果$\nabla_\mathbf{W} f = \mathbf{x}$虽然在形式上看起来很优雅，但实际上是一个不完整甚至“不正确”的结果，因为它没有考虑到梯度的维度和结构，形状是错的；但其数值是正确的，因为它确实包含了每个输入元素对输出的影响程度。
+
+换句话说，如果我们确实仅仅关心一个特定的输出分量对$\textbf{W}$的梯度，那这玩意还就真是个矩阵，且其中只有一行是非零的，这一行也正好就是输入$\mathbf{x}$的转置。
+
+更退一步的，如果一开始这个就是个二分类问题（输出是一个标量），那么这个问题就完全不存在了，因为此时$\nabla_\mathbf{W} f$连个矩阵都不是，结果形状也正确了。
+
+我上课的时候用的是二分类问题来让大家手算梯度回传（而不是多分类问题），一开始并没有考虑到上述问题，只是觉得二分类好算，结果阴差阳错地避开了这个问题；但现在我们知道了这个问题的存在，才发现之前的做法虽然不严谨，但也没有完全错误。
+
+学习了这些，同学们也不必担心代码的正确性。在实际的代码实现中，自动求导框架内部（ \verb|torch.nn.Linear|、\verb|torch.nn.Parameter| 等工具）会自己把这些解决好。我们只需要定义好前向计算，反向传播就能自动按正确形状计算梯度。
+
+也正因此我个人暂时不建议同学们手写梯度回传——真正手搓层的那一批人，大多有着充分的数学基础，爱因斯坦求和约定基本也都是信手拈来级别的，完全不需要担心这个复杂的“输出向量对输入矩阵”的高维数学问题；尽管如此，除非实现一些先前没有过的层，否则手动写起来往往也不会比自动求导更快更高效。
+
+而对于大多数同学，手写梯度回传可能会陷入对维度和形状的困惑中，反而不利于理解和掌握自动求导的核心概念；把精力放在模型结构上，反而是更高效、更不容易出错的做法。
+
+由此可见，\textbf{PyTorch真是个好东西。}
+
+\end{document}

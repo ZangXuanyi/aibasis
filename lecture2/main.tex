@@ -1,0 +1,230 @@
+\documentclass[12pt]{ctexart}
+\usepackage{minted}
+\usepackage{geometry}
+\usepackage{hyperref}
+\geometry{a4paper, margin=1in}
+
+\setminted{
+    % fontsize=\small,           % 字体大小
+    baselinestretch=1.0,       % 行间距
+    linenos=true,              % 行号
+    frame=lines,               % 边框样式
+    framesep=2mm,              % 边框间距
+    rulecolor=\color{black},   % 边框颜色
+    numbersep=5pt,             % 行号间距
+    breaklines=true,           % 自动换行
+    breakanywhere=false,       % 不在任意位置断行
+    showspaces=false,          % 不显示空格
+    showtabs=false,            % 不显示制表符
+    tabsize=4,                 % 制表符大小
+    % url=false,
+}
+
+\begin{document}
+\title{3月15日\quad 上机课未尽之言}
+\author{臧炫懿}
+\date{}
+\maketitle
+\tableofcontents
+
+\section{关于\mintinline{bash}{ssh-copy-id}}
+
+这个PPT写了，但是上课没讲。没讲的原因是很多同学们在Windows系统上。但Windows系统没有这个命令。
+
+所以，在这种情况下，我们应当手动添加公钥到服务器的\texttt{~/.ssh/authorized\_keys}文件中。
+
+在本人的电脑上执行\mintinline{bash}{cat ~/.ssh/id_rsa.pub}命令，复制输出的公钥内容，然后登录到服务器，在\texttt{~/.ssh/authorized\_keys}文件中粘贴该公钥内容即可。或者你也可以用自己喜欢的文本编辑器打开公钥，复制内容后粘贴到服务器的\texttt{~/.ssh/authorized\_keys}文件中。
+
+\section{关于\mintinline{bash}{scp}和\mintinline{bash}{rsync}}
+这两个命令能用于在本地和远程服务器之间传输文件。
+
+在本机上，\begin{minted}{bash}
+scp local_file user@remote_host:/remote/directory/
+\end{minted}
+这个命令的意思是将本地文件\texttt{local\_file}复制到远程服务器\texttt{remote\_host}的\texttt{/remote/directory/}目录下。需要注意的是，\texttt{user}是远程服务器上的用户名，\texttt{remote\_host}是远程服务器的地址。
+
+但是\texttt{scp}存在不少问题，例如它在传输大文件时效率较低，或者在网络不稳定的情况下容易中断。相比之下，\texttt{rsync}命令更为高效和可靠，因为它只传输文件的差异部分，并且支持断点续传。使用方式如下：
+\begin{minted}{bash}
+rsync -avz local_file user@remote_host:/remote/directory/
+\end{minted}
+其中，\texttt{-a}选项表示归档模式，\texttt{-v}选项表示详细输出，\texttt{-z}选项表示在传输过程中启用压缩。
+
+当然，在实际操作中，这两个命令用得较少，我们在传输文件时往往是CLI和GUI共同使用的，实际的服务器通常也不是仅有CLI界面的，即使是远程服务器也大多会提供一个诸如宝塔面板之类的图形界面。
+
+但是还是那句话：我可以不用，但你不能没有。谁知道将来哪一天服务就挂了，不得不纯CLI操作；或者哪一天你需要在没有图形界面的环境下操作服务器呢？
+
+\section{关于命令联动}
+
+管道上课没讲。上课的时候，我们仅提了一嘴重定向（甚至还没讲完）。
+
+管道和重定向都是Linux中非常重要的概念，掌握它们可以大大提高我们在命令行下的效率。
+
+\subsection{管道}
+
+PPT中管道的实例是\mintinline{bash}{fortune | cowsay}，这个命令的意思是将\texttt{fortune}命令的输出作为\texttt{cowsay}命令的输入。
+
+管道实际上就是这个道理：把前一条命令的输出直接传递给下一条命令作为输入。这样我们就可以把多个命令串联起来，形成一个强大的命令链。
+
+与之类似的是\mintinline{bash}{grep}，这个也是PPT上写了，但是还没有讲（因为这个命令用的最多的还是配合管道）。\texttt{grep}命令的作用是从输入中搜索符合条件的行，并输出这些行，故而实际上最常用的写法大致是：\mintinline{bash}{ls -l | grep "pattern"}。其中，\mintinline{bash}{ls -l}没讲过，\texttt{-l}选项的作用是一行一个文件，并且显示更多的文件信息（如权限、所有者、大小等）。\texttt{grep "pattern"}的作用是从\mintinline{bash}{ls -l}的输出中搜索包含\texttt{pattern}的行，并将这些行输出到终端。
+
+\subsection{重定向}
+
+重定向只讲了最基础的一种，上课的例子是
+\begin{minted}{bash}
+echo "dabendan" > tmp
+\end{minted}
+这个命令的意思是将\texttt{echo "dabendan"}的输出重定向到文件\texttt{tmp}中。也就是说，这个命令会将字符串\texttt{dabendan}写入到文件\texttt{tmp}中，如果文件\texttt{tmp}不存在，则会创建它；如果文件\texttt{tmp}已经存在，则会覆盖它的内容。
+
+所以现在希望\textbf{追加}内容到文件\texttt{tmp}中，而不是覆盖它的内容，我们可以使用\texttt{>>}操作符，命令如下：
+\begin{minted}{bash}
+echo "dabendan" >> tmp
+\end{minted}
+实际上这个东西也是个重定向。
+
+重定向自然是有反过来的，\texttt{<}操作符可以将文件的内容作为命令的输入。例如：
+\begin{minted}{bash}
+cat < tmp # 但是我们从来不这么写
+\end{minted}
+这个命令的意思是将文件\texttt{tmp}的内容作为\texttt{cat}命令的输入，并将其输出到终端。这里需要注意的是，虽然这个命令确实是正确的，但我们只是为了演示重定向的用法而写的，实际上我们从来不这么写。因为\texttt{cat tmp}的效果完全一样！
+
+除了重定向到文件，实际上也可以重定向到标准错误设备等。例如：
+\begin{minted}{bash}
+ls non_existent_file 2> error.log
+\end{minted}
+这里试图对一个不存在的文件进行\texttt{ls}操作，这会产生一个错误信息。使用\texttt{2>}操作符，我们将这个错误信息重定向到文件\texttt{error.log}中，而不是输出到终端。
+
+\section{关于玩具}
+
+上课的时候想介绍的玩具一个都没有介绍，主要是因为时间关系。
+
+\subsection{安装软件}
+上述所有的命令（\texttt{cp}、\texttt{mv}、\texttt{rm}、\texttt{mkdir}、\texttt{rmdir}等）都是Linux系统中最基本的文件操作命令，换句话说就算是许多年前的sh，也支持这些命令，故而完全不需要安装任何软件就可以使用这些命令。
+
+但实际上Linux内核的操作系统也是个操作系统，那如果一个操作系统不能安装软件，其意义就相当有限了——例如最近兴起的国产系统鸿蒙，我们开发者总是说“生态尚需发展”，大致就是这个原因：其支持的软件尚不能满足用户的需求，导致难以日常使用。
+
+在Linux上安装软件和Windows上也有巨大的不同。在Windows上，我们实际上只需要下载一个安装包，双击运行，按照提示操作就可以完成安装了。而在Linux上，我们通常使用包管理器来安装软件，例如\texttt{apt}、\texttt{yum}、\texttt{pacman}等。这些包管理器可以自动处理软件的依赖关系，确保我们安装的软件能够正常运行。
+
+那么有的同学要问了：为什么Windows从来不处理依赖？
+
+答：因为Windows上发的包，几乎把依赖都打包在一起了！不信可以试着在Windows系统上搜索一下Chrome的内核，看看有多少个。实际上你大概会在一个系统上发现数十个不同版本的Chrome内核，这些内核被不同的软件作为依赖使用着。那这就带来了一个问题，就是软件的极度臃肿。
+
+而Linux就没有这个臃肿的问题，但有的必有失：这样的话，导致所有的软件包几乎都很“干净”，干净到不把依赖打包到一起。在很久以前确实需要人来处理这些依赖，但这样既麻烦又容易出错。所以必须有一个自动化工具来处理这些依赖关系，这就是包管理器的作用。
+
+在Ubuntu系统上（上课用的是这个，如果不是这个系统的，请自行查找相关资料），我们使用\texttt{apt}包管理器来安装软件。例如，如果我们想安装\texttt{curl}这个工具，我们可以在终端中输入以下命令：
+\begin{minted}{bash}
+sudo apt update # 更新软件包列表
+sudo apt install curl # 安装curl，但大多也已经预装了
+\end{minted}
+这里的\texttt{sudo}命令是用来以管理员权限执行命令的，因为安装软件通常需要管理员权限。第一条命令\texttt{apt update}是用来更新软件包列表的，这样系统就知道有哪些软件包可以安装了。第二条命令\texttt{apt install curl}就是用来安装\texttt{curl}这个工具的。
+
+注意：在实际机器上，所有的sudo都需要密码，而在CLab上，安装软件包的sudo不需要密码。这是特殊的设计，免密码sudo是为了方便同学们在上机课上安装软件包而设计的；但是，CLab上实际的sudo密码是什么，我肯定是不能告诉你们的，这也是为了安全考虑。
+
+那么，如果我们想安装一个软件包，但又不确定它的确切名称，我们可以使用\texttt{apt search}命令来搜索相关的软件包。例如，如果我们想安装一个文本编辑器，但又不确定它的名称，我们可以输入以下命令：
+\begin{minted}{bash}
+apt search text editor
+\end{minted}
+这个命令会搜索所有包含“text editor”关键词的软件包，并列出它们的名称和简要描述。这样我们就可以找到我们想要安装的软件包了。
+
+\subsection{PPT提到的，但是上课没讲的玩具}
+
+\begin{description}
+    \item[\texttt{sl}] 这个命令的作用是当你输入\texttt{ls}命令时，如果你打错了，输入成了\texttt{sl}，它就会显示一个小火车在屏幕上跑来跑去，提醒你打错了命令。
+    \item[\texttt{cowsay}] 这个命令的作用是当你输入一个字符串时，它会显示一个ASCII艺术风格的牛，并且牛会说出你输入的字符串。 
+    \item[\texttt{fortune}] 这个命令的作用是当你输入\texttt{fortune}命令时，它会随机显示一句格言、笑话或者其他有趣的话。（所以你就知道了为什么\texttt{fortune | cowsay}这个命令会显示一个牛说出一句随机的话了吧！）当然这个软件包的名字并不叫\texttt{fortune}，它的名字叫\texttt{fortune-mod}，安装的时候需要注意一下。
+    \item[\texttt{figlet}、\texttt{toilet}] 这两个命令的作用是当你输入一个字符串时，它会将这个字符串转换成一个大型的ASCII艺术风格的文本。它们的区别在于，\texttt{figlet}支持更多的字体，而\texttt{toilet}则支持更多的颜色和特效。注意：不要试图输入中文。
+    \item[\texttt{fastfetch}系列] 这个命令的作用是显示你的系统信息，例如操作系统、内核版本、CPU型号、内存大小等。它的输出非常美观，适合用来展示你的系统信息。  
+    \item[\texttt{oneko \&}] 这个命令本来想在自己电脑上演示给大家玩的（因为CLab没有GUI）。它的作用是当你输入\texttt{oneko \&}命令时，它会在你的屏幕上显示一个小猫，并且这个小猫会跟着你的鼠标移动。其中，\texttt{\&}指的是“这个命令会在后台执行”，也就是说，当你输入\texttt{oneko \&}命令后，你的终端会立即返回提示符，你可以继续输入其他命令。
+\end{description}
+
+如果想看到后台的命令，可以用\texttt{fg}命令将它们切换到前台，或者用\texttt{jobs}命令查看当前有哪些后台任务在运行。\texttt{bg}则是用来将一个暂停的任务继续在后台运行的命令。具体暂停一个任务的方法是按下\texttt{Ctrl+Z}，这会将当前正在运行的任务暂停，并将其放到后台。
+
+切断前台进程的方法是按下\texttt{Ctrl+C}，这会发送一个中断信号给当前正在运行的任务，通常会导致它被终止。\texttt{killall oneko}的意思就是“杀掉”所有名为\texttt{oneko}的进程，这样小猫就会消失了。这个命令（\texttt{killall}、\texttt{kill}等）常用于终止后台的任务。
+
+\subsection{玩\texttt{/dev}}
+这个纯粹是想让大家体验一下Linux“一切皆文件”的哲学思想的玩具。我们在Linux系统中，\texttt{/dev}目录下有很多特殊的文件，这些文件并不是真正的文件，而是设备文件或者特殊文件，它们代表着系统中的各种设备和资源。
+\begin{description}
+    \item[\texttt{/dev/null}] 这个文件作用是丢弃所有写入它的数据，并且当你从它读取数据时，它会立即返回EOF（End Of File）。所以当你执行\texttt{echo "hello" > /dev/null}命令时，字符串\texttt{hello}会被丢弃，而不会输出到终端。null读“闹”（不过一般读啥都行，只要不引起歧义就好了）。
+    \item[\texttt{/dev/zero}] 这个文件作用是当你从它读取数据时，它会返回一个无限的零字节流，而当你向它写入数据时，这些数据会被丢弃。比如当你执行\texttt{head -c 10 /dev/zero}命令时，它会输出10个零字节（实际上是10个\texttt{\textbackslash 0}字符，这个字符并不是可见的，需要使用\texttt{cat -v}命令来查看）。
+    \item[\texttt{/dev/random}] 这个文件的作用是当你从它读取数据时，它会返回一个随机的字节流。这个设备通常用于生成随机数或者加密用途。与之类似的是\texttt{/dev/urandom}，它的作用也是返回一个随机的字节流，性能更好一些，但安全性稍微差一些。
+    \item[\texttt{/dev/tty}] 这个文件的作用是代表当前终端设备。当你从它读取数据时，它会返回你在终端上输入的数据；当你向它写入数据时，这些数据会被输出到终端上。 
+\end{description}
+
+\section{关于怎么退出ssh}
+
+答：输入命令\mintinline{bash}{exit}或者按下\texttt{Ctrl+D}即可退出ssh连接，回到本地终端。
+
+你要是不嫌麻烦，也可以直接关闭终端窗口，这样也会断开ssh连接，但这不是一个优雅的方式，可能会导致一些资源没有被正确释放。
+
+\section{题外话：关于为什么一定要在Linux上学这些基本命令}
+
+上课的时候，有人提出了一个问题：“既然你只讲这些基本命令，为什么一定要上Linux？”
+
+这个问题其实很好。
+
+好就好在这个问题是乱提的，但一般人回答不上来。
+
+如果你的问题是“基本命令”，那答案是显然的：
+
+从纯教学的角度来看，讲这些基本命令自然是必要的。
+
+很多人是没有使用过CLI的，甚至没有使用过Linux的，所以我们必须从最基础的命令开始讲起。
+
+影视剧中，CLI总是一个黑窗口，里面有一些绿色的字在闪烁着，主角们在里面输入一些神秘的命令，就能完成一些不可思议的操作。
+
+这自然就带来了一个错觉：只有那些真正的大牛、黑客等才会去用CLI。
+
+错！
+
+CLI和GUI一样，都是一种基本的、和计算机交互的手段罢了！
+
+讲这些基本操作，那自然是为了让同学们不再害怕CLI的——因为之后的上机课，CLI操作是离不开的。
+
+至少那节讲Git的课，要是不会CLI，那就没法上了。
+
+当然，如果你预先已经会了这些基本命令，那自然可以不听，这个我是完全尊重的。
+
+但如果你的重点是“为什么要上Linux”（题外话是“在自己的系统，如Win、mac上学这些命令不行吗？”），那我觉得这个问题就非常有意思了。
+
+首先，这些基本命令在Linux上是最原生的，最直接的。虽然在Windows上也有一些类似的命令，但它们往往是通过一些兼容层或者第三方工具来实现的，使用起来可能会有一些差异和限制：在ps1语言上，我们最习惯的 \texttt{touch} 被变成了 \texttt{New-Item}；\texttt{ls}被变成了\texttt{Get-ChildItem}；\texttt{cp}被变成了\texttt{Copy-Item}；\texttt{mv}被变成了\texttt{Move-Item}；\texttt{rm}被变成了\texttt{Remove-Item}；\texttt{mkdir}被变成了\texttt{New-Item -Type Directory}。
+
+不能把面向对象的管道和面向文本的管道混为一谈！
+
+有的人可能不服，为什么我打 \texttt{cp} 等命令还能执行。
+
+答：这仅仅是Windows做的alias罢了。
+
+但是在Linux上，这些命令就是系统的一部分。
+
+我平常不喜欢用Windows，除了Windows在开发方面（尤其是环境配置方面）极为令人不适以外，另一个重要原因是：用Windows，\textbf{本质上是在和程序员预先设计好的交互逻辑打交道}，而不是真的和“操作系统本身”打交道——Linux虽然也免不得这类指摘，但好得多。
+
+即使是在Windows上用CLI，也是如此。
+
+甚至WSL也是如此（驱动：请好好地看着我），和系统依然是隔了一层抽象层。
+
+Windows的GUI甚至是几乎写死在内核里面的（而Linux的GUI顶多只是个软件而已）！
+
+Windows的用户界面设计的固然令人感叹，真正做到了“所见即所得”；然而，实际上在计算机领域，“所见即所得”的东西，“所见即所得”本身往往是它唯一的优点，剩下的全是缺点。
+
+但是90\%的人也只能接触到“所见即所得”的东西！
+
+我承认Windows作为过渡系统或日常使用系统的便利性；但我更认为作为PKU信科的学生，应该有能力且必须有能力接触到“所见即所得”以外的东西，甚至是“所见即所得”的反面！
+
+尽早地使用Linux，有助于快速建立“一切皆文件”的思维模式，更有助于加深对计算机系统的理解。
+
+虽然我总是说“计算机是实践的科学”，但一点理论不懂肯定是不行的；光背八股更是不可取的。必须要在实践中去理解这些理论，才能真正掌握它们。
+
+而另一方面，作为《人工智能基础》这门课程的助教、作为LCPU学习部的部长，我始终坚定不移地认为，能上这门课的同学，将来至少有一半以上会不得不和Linux打交道，不得不使用SSH来连接到远程的GPU集群，不得不在没有图形界面的环境下操作服务器，不得不使用CLI来进行各种操作。
+
+甚至实际上很多人将来也大概率会主动倒向Linux：你不会想在Windows或macOS上配CUDA环境吧！
+
+我是在Windows上配过的，所以我知道有多麻烦！
+
+作为助教，作为上机课，仅仅局限于课程本身，那自然是极度愚蠢且短视的行为。
+
+仅仅纠结于GPA，那自然不失为一种度过大学的策略，但我想问：在对GPA的评判过去之后，同学们的身上还会剩下些什么？
+
+实际上这节课的过程也大概就是这样：先搞好SSH，然后去CLab纯手工创建一台虚拟机，ssh上去，然后在里面玩Linux。我认为这个过程是自洽的。
+
+所以这就是为什么我觉得在Linux上学这些基本命令是非常重要的。
+
+\end{document}

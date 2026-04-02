@@ -1,0 +1,910 @@
+\documentclass[fontset=none]{ctexart}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{fontspec}
+\usepackage{minted}
+\usepackage{graphicx}
+\usepackage{multicol}
+\usepackage{enumitem}
+\usepackage{fontawesome5}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins,xparse,most,breakable}
+\usepackage{xcolor}
+\newtcolorbox{warning}{enhanced,colback=red!4!white,colframe=red!75!black,coltitle=white,fonttitle=\bfseries,title=警告,top=2mm,bottom=2mm,left=2.5mm,right=2.5mm,boxrule=0.6pt,breakable,fontupper=\small,before upper={\setlength{\parindent}{2em}}}
+\newtcolorbox{caution}{enhanced,colback=orange!5!white,colframe=orange!60!black,coltitle=white,fonttitle=\bfseries,title=注意,top=2mm,bottom=2mm,left=2.5mm,right=2.5mm,boxrule=0.6pt,breakable,fontupper=\small,before upper={\setlength{\parindent}{2em}}}
+\newtcolorbox{tip}{enhanced,colback=cyan!3!white,colframe=cyan!65!black,coltitle=white,fonttitle=\bfseries,title=提示,top=2mm,bottom=2mm,left=2.5mm,right=2.5mm,boxrule=0.6pt,breakable,fontupper=\small,before upper={\setlength{\parindent}{2em}}}
+\newtcolorbox{note}{enhanced,colback=teal!3!white,colframe=teal!60!black,coltitle=white,fonttitle=\bfseries,title=说明,top=2mm,bottom=2mm,left=2.5mm,right=2.5mm,boxrule=0.6pt,breakable,fontupper=\small,before upper={\setlength{\parindent}{2em}}}
+\newtcolorbox{example}[1][]{enhanced,colback=blue!3!white,colframe=blue!70!black,coltitle=white,fonttitle=\bfseries,title={\IfBlankTF{#1}{例题}{例题 (#1)}},top=2mm,bottom=2mm,left=2.5mm,right=2.5mm,boxrule=0.6pt,breakable,fontupper=\small,before upper={\setlength{\parindent}{2em}}}
+\newtcolorbox{answer}{enhanced,colback=green!4!white,colframe=green!65!black,coltitle=white,fonttitle=\bfseries,title=答案,top=2mm,bottom=2mm,left=2.5mm,right=2.5mm,boxrule=0.6pt,breakable,fontupper=\small,before upper={\setlength{\parindent}{2em}}}
+\newtcolorbox{exercise}[1][]{enhanced,colback=violet!4!white,colframe=violet!70!black,coltitle=white,fonttitle=\bfseries,title={\IfBlankTF{#1}{练习}{练习：#1}},top=2mm,bottom=2mm,left=2.5mm,right=2.5mm,boxrule=0.6pt,breakable,fontupper=\small,before upper={\setlength{\parindent}{2em}}}
+\newtcolorbox{thinking}{enhanced,colback=yellow!4!white,colframe=yellow!70!black,coltitle=white,fonttitle=\bfseries,title=开放性思考和探索,top=2mm,bottom=2mm,left=2.5mm,right=2.5mm,boxrule=0.6pt,breakable,fontupper=\small,before upper={\setlength{\parindent}{2em}}}
+\setlist{nosep}
+\usepackage{geometry}
+\geometry{a4paper,scale=0.8}
+\usepackage{hyperref}
+
+% \setlength{\parindent}{2em}
+\setlength{\parskip}{0.5em}
+
+\setminted{
+    fontsize=\small,           % 字体大小
+    baselinestretch=1.0,       % 行间距
+    % linenos=true,              % 行号
+    frame=single,           % 边框样式
+    framesep=2mm,              % 边框间距
+    rulecolor=\color{black},   % 边框颜色
+    % numbersep=5pt,             % 行号间距
+    breaklines=true,           % 自动换行
+    breakanywhere=false,       % 不在任意位置断行
+    showspaces=false,          % 不显示空格
+    showtabs=false,            % 不显示制表符
+    tabsize=4,                 % 制表符大小
+    % url=false,
+}
+
+\setmainfont{Source Serif Pro}
+\setsansfont{Source Sans Pro}[Scale=MatchLowercase]
+\setmonofont{Source Code Pro}[Scale=MatchLowercase]
+\setCJKmainfont[ItalicFont = * ]{Source Han Serif CN}
+\setCJKsansfont[ItalicFont = * ]{Source Han Sans CN}
+\setCJKmonofont[ItalicFont = * ]{Source Han Sans CN}
+
+\title{\Huge\textbf{《编程基础》言犹未尽之处}}
+\author{臧炫懿}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+这里就当刘老师上课对PyTorch的使用一点都没讲过了，也是对课件的补充。同学们可以自行参照学习。
+
+\tableofcontents
+
+\section{PyTorch}
+
+Torch是一个比较流行的深度学习框架，PyTorch是它的Python版本。PyTorch提供了一个强大的张量库和自动求导机制，使得构建和训练神经网络变得非常方便。
+
+\subsection{机器学习必须的前置知识}
+
+为了更好地讲解PyTorch，我们先来回顾一下机器学习的一些基本概念。如果不清楚这些概念，可能会觉得PyTorch的使用非常神秘。
+
+以下内容可能在之后的课程中还会介绍，如果有冲突，以课上讲的为准！
+
+\subsubsection{损失函数和学习率}
+
+思考一个问题：假设有一堆图片（$28 \times 28 \times 1$），上面要么写着0到9的随机数字。我们希望训练一个模型，能够根据图片内容判断它是0到9中的哪个数字。
+
+初来乍到，该问题看起来很难解决。
+
+\paragraph{二维的特殊情况}
+
+从特殊到一般，我们先思考一个基础问题：假设平面上有两堆点。我希望画一条线，把这两堆点隔开。
+
+容易知道，在二维平面上，一条直线的方程可以表示为：
+\[Ax + By + C = 0\]
+
+我们希望对于其中一类点（把点看成向量），满足$Ax + By + C > 0$，而对于另一类点，满足$Ax + By + C < 0$。如果确实能够找到这样一条直线，那么我们就成功地把两堆点分开了。
+
+利用向量，我们把它写成：
+\[\mathbf{W}^T\mathbf{x} + b = 0\]
+其中$\mathbf{W}^T = (A, B)$，$b = C$，$\mathbf{x} = (x, y)$。如果$\mathbf{W}^T\mathbf{x} + b > 0$，则$\mathbf{x}$属于第一类点；如果$\mathbf{W}^T\mathbf{x} + b < 0$，则$\mathbf{x}$属于第二类点。
+
+于是这就变成了一个关于某个向量的函数。
+
+那么就要调整$\mathbf{W}$、$b$这两个参数。我们可以通过调整这些参数来找到一条最佳的线，将两堆点分开。
+
+在这个过程中，我们需要一个衡量线的好坏的标准，这就是\textbf{损失函数}。损失函数告诉我们当前的线与理想分隔线之间的差距有多大。这个“理想”自然是人为定义的。一般情况下，将损失函数设定为“分得越好，损失函数的值越小，但损失函数是个非负数”。
+
+所以说，比如最简单的损失函数：
+
+\[L(\mathbf{W}, b) = \sum\mathbb{I}_{\text{分对的}}\]
+
+于是上述问题就变成了“找到一组参数$\mathbf{W}$、$b$，使得损失函数$L$最小”。这里的损失函数最小值未必是0，因为可能存在一些点无法被一条直线完全分开（如异或问题），或数据本身存在噪声等因素。
+
+当然这样的损失函数很难用，因为它是一个离散的函数；而在实际的数学题目中，我们希望损失函数是连续可微的，这样我们就可以使用微积分工具来求解最优参数。
+
+所以在实际情况下一个损失函数可能是这样的：
+
+\[L(\mathbf{W}, b) = \sum (y - \hat{y})^2\]
+
+其中$y$是真实标签，$\hat{y}$是模型的预测值。这个损失函数被称为均方误差。
+
+所以，怎么去调整这个参数？利用瞪眼法得知，当$y = \hat{y}$时损失函数的数值最小，但这显然不是一个可用的解法。
+
+实际上，我们完全可以先随机的画一条线，然后让这条线向着损失函数更小的方向“扭一扭”，直到扭出一个比较好的线来。
+
+这就是邓小平理论的“实践是检验真理的唯一标准”“摸着石头过河”的思想在机器学习中的体现。
+
+那么问题又出现了：怎么扭？
+
+我们被迫寄希望于数学家。然后我们惊奇的发现，牛顿已经解决了这个问题。
+
+回忆高中知识，要求解一个函数的零点$f(x) = 0$，我们可以使用牛顿迭代法：
+\begin{enumerate}
+    \item 先随机选一个初始点$x_0$。
+    \item 计算函数在这个点的值$f(x_0)$和导数$f'(x_0)$。
+    \item 过点$(x_0, f(x_0))$作函数的切线$y = f'(x_0)(x - x_0) + f(x_0)$。
+    \item 计算切线与$x$轴的交点$x_1$，得到$x_1 = x_0 - \frac{f(x_0)}{f'(x_0)}$。
+    \item 重复上述步骤，直到找到一个足够接近零点的解。
+\end{enumerate}
+
+$x_{n+1} = x_n - \frac{f(x_n)}{f'(x_n)}$！这就是我们所要的东西。
+
+因为在这个题目中，我们要求解的是导函数$\nabla L(\mathbf{W}, b) = 0$，所以把这个带进上述式子，得到：
+\[(\mathbf{W}, b)_{n+1} = (\mathbf{W}, b)_n - \frac{\nabla L(\mathbf{W}, b)}{\nabla^2 L(\mathbf{W}, b)}\]
+
+这就是大名鼎鼎的\textbf{牛顿优化法}。
+
+\[\nabla L(\mathbf{W}, b) = \left( \frac{\partial L}{\partial \mathbf{W}}, \frac{\partial L}{\partial b} \right)\]
+
+上式往往被叫做损失函数的梯度，$\nabla^2 L(\mathbf{W}, b)$是损失函数的Hessian矩阵。这个式子能够很好地帮助我们找到损失函数的最小值。
+
+\paragraph{高维度的特殊情况}
+
+我们再简化一点：现在已经不是一堆二维点了，而是图片了，但这些图片只有0和1两种情况。
+
+如果把这些$28 \times 28 \times 1$的图片看成一个向量$\mathbf{x}$，那么这就是一个在784维空间中的问题了。我们需要找到一个超平面来分隔这些两类点。
+
+这时候我们被迫引入一个前提：0和1的写法有显著区别，换言之\textbf{在高维空间中，这两种点应当分别聚集在空间中的不同区域}。如果这个前提不成立，那么我们就无法找到一个超平面来分隔它们了——而这也实际上是简单神经网络的一个重要假设。
+
+实际上超平面的方程和二维的直线方程是一样的，只不过维度更高了：
+\[\mathbf{W}^T\mathbf{x} + b = 0\]
+
+对的，这玩意一点没变。
+
+于是设计损失函数：
+\[L(\mathbf{W}, b) = \sum (y - \hat{y})^2\]
+
+设计优化算法：
+\[(\mathbf{W}, b)_{n+1} = (\mathbf{W}, b)_n - \frac{\nabla L(\mathbf{W}, b)}{\nabla^2 L(\mathbf{W}, b)}\]
+
+但是就在这时，我们发现了一个问题：在高维空间中，损失函数的Hessian矩阵$\nabla^2 L(\mathbf{W}, b)$是一个非常大的矩阵，计算它的逆矩阵是非常困难的。
+
+但是这时候又需要我们灵光一现了：既然这是一个差分方程（因为我们在迭代），我们只需要知道差分是增加还是减少就行了，并不需要具体增加多少！
+
+于是上述式子被简化成了：
+\[(\mathbf{W}, b)_{n+1} = (\mathbf{W}, b)_n - \eta \nabla L(\mathbf{W}, b)\]
+
+上述式子中的$\eta$被称为\textbf{学习率}，它是一个超参数，用于控制每次更新的步长大小。选择合适的学习率对于模型的训练非常重要，如果学习率过大，可能会导致模型发散；如果学习率过小，可能会导致训练过程过慢。
+
+\paragraph{回到一般}
+
+于是现在我们终于可以解决原有的问题了，现在图片是0到9的了。
+
+单独用相互独立的超平面分割九次，显然是不行的，因为不独立的超平面会相互干扰，导致模型性能下降。所以借用方程组思维，设计一个方程组来同时分割这十类点：
+\[
+    \begin{cases}
+        \mathbf{W}^T_0\mathbf{x} + b_0 = 0 \\
+        \mathbf{W}^T_1\mathbf{x} + b_1 = 0 \\
+        \vdots \\
+        \mathbf{W}^T_9\mathbf{x} + b_9 = 0
+\end{cases}\]
+这太麻烦了，所以我们把它们合并成一个矩阵形式：
+\[\mathbf{W}^T\mathbf{x} + \mathbf{b} = \mathbf{0}\]
+这里的$\mathbf{W}$是一个$10 \times 784$的矩阵，$\mathbf{b}$是一个$10 \times 1$的向量，$\mathbf{0}$是一个$10 \times 1$的零向量。当然在很多教材中这个$\mathbf{0}$往往会被简单地写作$0$，但我们知道它是一个向量。
+
+实际上这里换汤不换药，但模型的输出变为一个$10 \times 1$的向量了，每个元素表示对应类别的得分。我们可以通过对这个输出向量进行相应的处理，从而得到最终的预测结果。也就是说：
+\[\hat{y} =\arg\max(\mathbf{W}^T\mathbf{x} + \mathbf{b})\]
+
+那么定义损失函数：
+\[L(\mathbf{W}, \mathbf{b}) = \sum (y - \hat{y})^2\]
+定义优化算法：
+\[(\mathbf{W}, \mathbf{b})_{n+1} = (\mathbf{W}, \mathbf{b})_n - \eta \nabla L(\mathbf{W}, \mathbf{b})\]
+
+没有任何区别。
+
+\subsubsection{前向传播和反向传播}
+
+在上述的模型中，我们可以把$\mathbf{W}\mathbf{x} + \mathbf{b}$看成是一个函数$f(\mathbf{W}, \mathbf{b}, \mathbf{x})$，它接受输入$\mathbf{x}$，并输出一个向量$\hat{y}$。这个过程被称为\textbf{前向传播}，因为信息是从输入层流向输出层的。
+
+但我们知道，“学而不思则罔，思而不学则殆”，或“理论指导实践，实践检验理论”，我们需要通过某种方式来调整$\mathbf{W}$和$\mathbf{b}$，使得损失函数$L$最小化。这就需要计算损失函数关于参数的梯度$\nabla L(\mathbf{W}, \mathbf{b})$，这个过程被称为\textbf{反向传播}，因为信息是从输出层流向输入层的。
+
+反向传播的过程一般是这样计算的：
+
+\begin{enumerate}
+    \item 首先计算损失函数$L$关于输出$\hat{y}$的梯度$\frac{\partial L}{\partial \hat{y}}$。
+    \item 然后根据链式法则，计算损失函数$L$关于参数$\mathbf{W}$和$\mathbf{b}$的梯度：
+        \[\frac{\partial L}{\partial \mathbf{W}} = \frac{\partial L}{\partial \hat{y}} \cdot \frac{\partial \hat{y}}{\partial \mathbf{W}}\]
+        \[\frac{\partial L}{\partial \mathbf{b}} = \frac{\partial L}{\partial \hat{y}} \cdot \frac{\partial \hat{y}}{\partial \mathbf{b}}\]
+\end{enumerate}
+然后一层层地向前传播，直到计算出所有参数的梯度。
+
+实际上这就是所谓的“计算图”，我们可以把前向传播的过程看成是一个计算图，其中每个节点表示一个操作，每条边表示数据的流动。反向传播就是在这个计算图上进行的一种特殊的遍历方式，通过链式法则来计算梯度。
+
+\subsubsection{激活函数、正则化}
+
+\paragraph{线性变换解决不了的问题}
+
+但是在实际情况中，这些需要分割的点往往不是线性可分的。比如说异或问题，或者说图片中的0和1的写法非常相似，导致它们在高维空间中混在一起了。
+
+这时候，聪明的同学可能会思考：既然单层网络不能分割，那我就分两次，用两个超平面分割它们，这样可以吗？
+
+那么我们试图做一下分层的设计：
+\[
+    \begin{cases}
+        \mathbf{W}_1\mathbf{x} + \mathbf{b}_1 = \mathbf{0} \\
+        \mathbf{W}_2\mathbf{h} + \mathbf{b}_2 = \mathbf{0}
+\end{cases}\]
+其中$\mathbf{h}$是第一层的输出。我们希望通过第一层的变换，使得第二层的输入$\mathbf{h}$能够线性可分。
+
+于是我们发现一个令人失望的问题：
+
+\[\hat{y} = \mathbf{W}_2(\mathbf{W}_1\mathbf{x} + \mathbf{b}_1) + \mathbf{b}_2 = (\mathbf{W}_2\mathbf{W}_1)\mathbf{x} + (\mathbf{W}_2\mathbf{b}_1 + \mathbf{b}_2)\]
+
+这怎么还是一个线性变换？
+
+实际上\textbf{完全可以证明，任何多次线性变换，最终得到的结果依然可以使用一个线性变换来表示}。所以说，单纯的线性变换是无法解决非线性可分问题的。实践也证明了单纯堆叠多层的线性变换并不比单层的线性变换更强大，甚至反而更弱（因为需要学习的参数更多了）。
+
+为此，引入非线性，即\textbf{激活函数}，使得每一层的输出都经过一个非线性变换，这样就能够解决非线性可分的问题了。那么分层就变成了：
+\[
+    \begin{cases}
+        \mathbf{h}_1 = \mathbf{W}_1\mathbf{x} + \mathbf{b}_1 \\
+        \mathbf{a}_1 = \sigma(\mathbf{h}_1) \\
+        \hat{y} = \mathbf{W}_2\mathbf{a}_1 + \mathbf{b}_2
+\end{cases}\]
+这样我们就会发现，虽然$\hat{y}$仍然是一个线性变换，但它的输入$\mathbf{a}_1$已经经过了非线性变换，所以整个模型就能够表示非线性关系了。
+
+常见的激活函数包括ReLU、Sigmoid、Tanh等。选择合适的激活函数对于模型的性能有很大的影响。
+
+\paragraph{过拟合问题}
+
+我们小学经常考“找规律”题目。而在实际生活中，很多找规律题目都可以随意地添一个数字上去，例如42或114514。这是因为，在没有任何限制的情况下，我们可以构造出无数个规律来解释这些数字的出现，这被称作“拉格朗日插值”。
+
+而在机器学习中，也会经常遇到这种情况。假设模型的本质是一个多项式函数，那么经过不加限制的训练，它可能会学到一个非常高次的多项式来拟合训练数据：这个多项式在训练数据上表现得非常好，但在测试数据上表现得非常差，这就是所谓的\textbf{过拟合}。
+
+为了解决过拟合，通常引入所谓的\textbf{正则化}方法。正则化的核心思想是对模型的复杂度进行惩罚，鼓励模型学习到更简单的规律，从而提高模型在测试数据上的泛化能力。常见的正则化方法包括L1正则化、L2正则化和Dropout等。
+
+L1正则化通过在损失函数中添加参数的绝对值来惩罚模型的复杂度，这会导致一些参数被压缩到零，从而实现特征选择；L2正则化通过添加参数的平方来惩罚模型的复杂度，这会使得参数趋向于较小的值，但不会完全压缩到零。
+
+在引入L1或L2正则化之后，损失函数的定义就变成了：
+\[L(\mathbf{W}, \mathbf{b}) = \sum (y - \hat{y})^2 + \lambda R(\mathbf{W}, \mathbf{b})\]
+其中$R(\mathbf{W}, \mathbf{b})$是正则化项，$\lambda$是正则化强度的超参数。
+
+其中，当$R$是L1正则化时，$R(\mathbf{W}, \mathbf{b}) = \sum |\mathbf{W}| + \sum |\mathbf{b}|$；当$R$是L2正则化时，$R(\mathbf{W}, \mathbf{b}) = \sum \mathbf{W}^2 + \sum \mathbf{b}^2$。
+
+Dropout是另一种正则化方法，它不修改损失函数，而是在训练过程中对模型进行随机的“丢弃”，即在训练过程中随机地将一些神经元数值设为0，以防止模型过度依赖某些特定的神经元，从而提高模型的泛化能力。Dropout层通常有一个参数，表示丢弃的概率，例如Dropout(0.5)表示在训练过程中以50\%的概率将神经元数值设为0。
+
+\paragraph{激活函数、正则化的反向传播}
+
+对激活函数，在前向传播中，我们计算了$\mathbf{h}_1 = \mathbf{W}_1\mathbf{x} + \mathbf{b}_1$，然后计算了$\mathbf{a}_1 = \sigma(\mathbf{h}_1)$。在反向传播中，我们需要计算损失函数$L$关于$\mathbf{W}_1$和$\mathbf{b}_1$的梯度。首先，我们计算损失函数$L$关于$\mathbf{a}_1$的梯度$\frac{\partial L}{\partial \mathbf{a}_1}$，然后根据链式法则，计算损失函数$L$关于$\mathbf{h}_1$的梯度：
+\[\frac{\partial L}{\partial \mathbf{h}_1} = \frac{\partial L}{\partial \mathbf{a}_1} \cdot \frac{\partial \mathbf{a}_1}{\partial \mathbf{h}_1} = \frac{\partial L}{\partial \mathbf{a}_1} \cdot \sigma'(\mathbf{h}_1)\]
+其中$\sigma'(\mathbf{h}_1)$是激活函数$\sigma$的导数。然后我们可以继续计算损失函数$L$关于$\mathbf{W}_1$和$\mathbf{b}_1$的梯度：
+\[\frac{\partial L}{\partial \mathbf{W}_1} = \frac{\partial L}{\partial \mathbf{h}_1} \cdot \frac{\partial \mathbf{h}_1}{\partial \mathbf{W}_1} = \frac{\partial L}{\partial \mathbf{h}_1} \cdot \mathbf{x}^T\]
+\[\frac{\partial L}{\partial \mathbf{b}_1} = \frac{\partial L}{\partial \mathbf{h}_1} \cdot \frac{\partial \mathbf{h}_1}{\partial \mathbf{b}_1} = \frac{\partial L}{\partial \mathbf{h}_1} \cdot 1\]
+很复杂。
+
+正则化的反向传播也很复杂。以L2正则化为例，我们在损失函数中添加了$\lambda \sum \mathbf{W}^2$，那么在反向传播中，我们需要计算损失函数$L$关于$\mathbf{W}$的梯度时，不仅要考虑原始损失函数的梯度，还要考虑正则化项的梯度：
+\[\frac{\partial L}{\partial \mathbf{W}} = \frac{\partial L_{\text{原始}}}{\partial \mathbf{W}} + \lambda \frac{\partial R}{\partial \mathbf{W}} = \frac{\partial L_{\text{原始}}}{\partial \mathbf{W}} + 2\lambda \mathbf{W}\]
+同样的，对于L1正则化，我们需要计算$\lambda \sum |\mathbf{W}|$的梯度，这里也不再赘述了。
+
+对于Dropout正则化反而非常简单，因为它不修改损失函数，而是在训练过程中随机地将一些神经元数值设为0，所以在反向传播中，我们只需要将这些被丢弃的神经元的梯度也设为0即可。
+
+\subsection{PyTorch的使用}
+
+\subsubsection{张量}
+
+在PyTorch中，张量（Tensor）是其核心数据结构之一。张量是一个多维数组，可以看作是一个通用的数据容器，类似于NumPy中的ndarray，但它具有更强大的功能，特别是在GPU加速方面，更重要的是，它支持自动求导！
+
+PyTorch中的张量可以在CPU和GPU上进行计算，这使得它非常适合于深度学习任务。我们可以使用PyTorch提供的各种函数来创建、操作和计算张量。
+\begin{minted}{python}
+import torch
+import numpy as np
+# 创建一个2x3的张量，元素随机初始化
+x = torch.rand(2, 3)
+c = torch.from_numpy(np.array([[1, 2], [3, 4]]))  # 从Numpy数组创建张量
+print(c.shape)  # 输出张量的形状，这里是torch.Size([2, 2])
+\end{minted}
+
+我们还可以进行各种张量操作，例如矩阵乘法、转置、索引等。
+\begin{minted}{python}
+# 创建两个张量
+a = torch.rand(2, 3)
+b = torch.rand(3, 4)
+c = a + b  # 张量加法
+d = a * b  # 张量乘法（对应元素相乘）
+e = torch.dot(a, b)  # 向量点积
+f = torch.matmul(a, b)  # 向量点积（也可以用于矩阵乘法）
+g = a.t()  # 转置（对于一维张量来说没有效果）
+h = -a  # 张量取反，实际上是对每个元素取负
+\end{minted}
+
+\subsubsection{构建神经网络}
+
+在PyTorch中，我们可以使用torch.nn模块来构建神经网络。这个模块提供了许多预定义的层和损失函数，使得构建神经网络变得非常方便。
+\begin{minted}{python}
+import torch
+import torch.nn as nn # 一般就命名为这个
+# 定义一个简单的神经网络
+class SimpleNN(nn.Module):
+    def __init__(self):
+        super(SimpleNN, self).__init__()
+        self.fc1 = nn.Linear(784, 128)  # 输入层到隐藏层的全连接层
+        self.fc2 = nn.Linear(128, 10)  # 隐藏层到输出层的全连接层
+    def forward(self, x):
+        x = torch.relu(self.fc1(x))  # 隐藏层使用ReLU激活函数
+        x = self.fc2(x)  # 输出层
+        return x
+\end{minted}
+
+实际上这就是利用现有的层来构建一个两层的神经网络了。非常好的一点是并不需要手动实现反向传播的过程，PyTorch会根据前向传播的过程自动地构建计算图，并在反向传播时自动计算梯度。这实在是太方便了！
+
+如果想自己写也是可以的，这时候就需要这么做：
+\begin{minted}{python}
+import torch
+import torch.nn as nn
+class MyNN(nn.Module):
+    def __init__(self):
+        super(MyNN, self).__init__()
+        self.W1 = nn.Parameter(torch.rand(784, 128))  # 输入层到隐藏层的权重
+        self.b1 = nn.Parameter(torch.rand(128))  # 输入层到隐藏层的偏置
+        self.W2 = nn.Parameter(torch.rand(128, 10))  # 隐藏层到输出层的权重
+        self.b2 = nn.Parameter(torch.rand(10))  # 隐藏层到输出层的偏置
+    def forward(self, x):
+        h1 = torch.matmul(x, self.W1) + self.b1  # 输入层到隐藏层的线性变换
+        a1 = torch.relu(h1)  # 隐藏层使用ReLU激活函数
+        h2 = torch.matmul(a1, self.W2) + self.b2  # 隐藏层到输出层的线性变换
+        return h2
+\end{minted}
+在这里必须用\mintinline{python}{nn.Parameter}来定义权重和偏置，这样PyTorch才能知道这些参数是需要被优化的，于是也能够自动地计算它们的梯度。
+
+如果你用的是别的东西，那就没法自动求导了，你就得自己写反向传播了。那就热闹了！
+
+在神经网络中，也可以定义Dropout层来进行正则化。
+\begin{minted}{python}
+class SimpleNN(nn.Module):
+    def __init__(self):
+        super(SimpleNN, self).__init__()
+        self.fc1 = nn.Linear(784, 128)  # 输入层到隐藏层的全连接层
+        self.dropout = nn.Dropout(0.5)  # Dropout层，丢弃概率为0.5
+        self.fc2 = nn.Linear(128, 10)  # 隐藏层到输出层的全连接层
+    def forward(self, x):
+        x = torch.relu(self.fc1(x))  # 隐藏层使用ReLU激活函数
+        x = self.dropout(x)  # 应用Dropout
+        x = self.fc2(x)  # 输出层
+        return x
+\end{minted}
+
+\subsubsection{损失函数}
+
+PyTorch也是提供了很多预定义的损失函数的，例如均方误差损失函数、交叉熵损失函数等。我们可以直接使用这些损失函数来计算模型的损失。
+\begin{minted}{python}
+model = MyModel()  # 预先定义了个模型
+output = model(input)  # 前向传播，input来自数据
+loss = nn.MSELoss()(output, target)  # 定义一个简单的均方误差损失函数，target是真实标签，来自数据
+\end{minted}
+
+添加正则化也并非不可：
+\begin{minted}{python}
+# 定义一个带有L2正则化的损失函数
+def loss_with_l2(model, output, target, lambda_):
+    mse_loss = nn.MSELoss()(output, target)  # 计算均方误差损失
+    l2_loss = 0
+    for param in model.parameters():
+        l2_loss += torch.sum(param ** 2)  # 计算L2正则化项
+    return mse_loss + lambda_ * l2_loss  # 返回总损失
+\end{minted}
+这是比较麻烦的，所以我们一般直接使用PyTorch提供的优化器来进行正则化，例如Adam优化器就内置了L2正则化的功能，我们只需要在定义优化器时指定相关参数就行了。
+
+\subsubsection{前向传播和反向传播}
+
+在PyTorch中，前向传播和反向传播的过程非常简单。前向传播就是调用模型的\mintinline{python}{forward}方法来计算输出，而反向传播则是调用\mintinline{python}{backward}方法来计算梯度。
+\begin{minted}{python}
+model = MyModel()  # 预先定义了个模型
+output = model(input)  # 前向传播，input来自数据
+loss = nn.MSELoss()(output, target)  # 计算损失
+loss.backward()  # 反向传播，计算梯度
+\end{minted}
+于是就完事了。
+
+有的同学可能会问：为什么我没有调用\mintinline{python}{forward}方法，但是它还是能够正确地进行前向传播呢？这是因为在PyTorch中，调用模型实例本身就会自动调用\mintinline{python}{forward}方法，所以我们不需要显式地调用它。
+
+有的同学可能还会问：为什么我实现自己的模型的时候，没有实现\mintinline{python}{backward}方法，但是它还是能够正确地进行反向传播呢？这是因为PyTorch使用了自动求导机制，它会根据前向传播的计算图自动地计算梯度，所以我们不需要显式地实现\mintinline{python}{backward}方法。该方法继承自\mintinline{python}{nn.Module}，如果我们没有实现它，PyTorch会自动地为我们生成一个默认的\mintinline{python}{backward}方法来计算梯度。
+
+实际上\mintinline{python}{forward}方法也差不多，如果我们没有实现它，PyTorch会自动地为我们生成一个默认的\mintinline{python}{forward}方法来计算输出。
+
+\subsubsection{优化器、学习率调度器}
+
+优化器者，更新模型最小化参数、损失函数的算法也。PyTorch提供了许多预定义的优化器，例如SGD、Adam等，我们可以直接使用这些优化器来更新模型的参数。
+\begin{minted}{python}
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001)  # 定义一个Adam优化器，学习率为0.001
+optimizer.zero_grad()  # 清零梯度
+loss.backward()  # 反向传播，计算梯度
+optimizer.step()  # 更新参数
+\end{minted}
+
+学习率调度器则顾名思义，用来在训练过程中动态调整学习率的工具。PyTorch提供了许多预定义的学习率调度器，例如StepLR、ExponentialLR等，我们可以直接使用这些调度器来调整学习率。
+\begin{minted}{python}
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)  # 定义一个StepLR学习率调度器，每10个epoch将学习率乘以0.1
+for epoch in range(num_epochs):
+    # 训练代码
+    scheduler.step()  # 更新学习率
+\end{minted}
+
+\subsubsection{数据加载和预处理}
+
+巧妇难为无米之炊，而在训练模型中，“数据”便是这个“米”。PyTorch提供了torch.utils.data模块来帮助我们加载和预处理数据。这个模块提供了许多工具，例如Dataset、DataLoader等，使得数据加载和预处理变得非常方便。
+\begin{minted}{python}
+from torch.utils.data import Dataset, DataLoader
+class MyDataset(Dataset):
+    def __init__(self, data, labels):
+        self.data = data
+        self.labels = labels
+    def __len__(self):
+        return len(self.data)
+    def __getitem__(self, idx):
+        return self.data[idx], self.labels[idx]
+dataset = MyDataset(data, labels)  # 创建一个数据集实例，data和labels是预先准备好的数据和标签
+dataloader = DataLoader(dataset, batch_size=32, shuffle=True)  # 创建一个数据加载器实例，批量大小为32，数据将被随机打乱
+for batch_data, batch_labels in dataloader:
+    # 训练代码
+\end{minted}
+当然这个是比较基本的用法。在本节课中不需要同学们自己造数据，用的大多都是现成的数据集，例如MNIST、CIFAR-10等，这些数据集PyTorch也提供了预定义的Dataset类，我们可以直接使用它们来加载数据。
+\begin{minted}{python}
+from torchvision import datasets, transforms
+# 定义数据预处理的变换
+transform = transforms.Compose([
+    transforms.ToTensor(),  # 将图像转换为张量
+    transforms.Normalize((0.5,), (0.5,))  # 对图像进行归一化
+])
+# 加载MNIST数据集
+train_dataset = datasets.MNIST(root='./data', train=True, transform=transform, download=True) # 允许下载数据集
+test_dataset = datasets.MNIST(root='./data', train=False, transform=transform, download=True) # 允许下载数据集
+train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+\end{minted}
+
+有时候，为了提高模型的泛化能力，需要对训练数据进行一些随机的变换，例如随机裁剪、随机水平翻转等，这些变换可以通过torchvision.transforms模块来实现。
+\begin{minted}{python}
+transform = transforms.Compose([
+    transforms.RandomCrop(32, padding=4),  # 随机裁剪图像，裁剪大小为32x32，填充4像素
+    transforms.RandomHorizontalFlip(),  # 随机水平翻转图像
+    transforms.ToTensor(),  # 将图像转换为张量
+    transforms.Normalize((0.5,), (0.5,))  # 对图像进行归一化
+])
+\end{minted}
+
+\subsubsection{真正训练和评估进程}
+训练和评估模型的过程一般是这样的：
+\begin{minted}{python}
+num_epochs = 10  # 定义训练的轮数
+for epoch in range(num_epochs):
+    model.train()  # 设置模型为训练模式
+    for batch_data, batch_labels in train_loader:
+        optimizer.zero_grad()  # 清零梯度
+        output = model(batch_data)  # 前向传播
+        loss = nn.MSELoss()(output, batch_labels)  # 计算损失
+        loss.backward()  # 反向传播，计算梯度
+        optimizer.step()  # 更新参数
+    model.eval()  # 设置模型为评估模式
+    with torch.no_grad():  # 在评估模式下不计算梯度
+        for batch_data, batch_labels in test_loader:
+            output = model(batch_data)  # 前向传播
+            loss = nn.MSELoss()(output, batch_labels)  # 计算损失
+            # 评估模型性能，例如计算准确率等
+\end{minted}
+一定不要忘记在训练的时候开训练模式，在评估的时候开评估模式，这样才能正确地使用Dropout等层。
+
+\subsubsection{实例和总结}
+
+实例见演示文稿。
+
+实际上上述内容讲得比较乱。第一次写PyTorch的时候，只需要记住以下顺序，并大概实现一下就行了：
+
+\begin{enumerate}
+        \item 加载数据集（\mintinline{python}{torch.utils.data}）
+        \item 定义模型（\mintinline{python}{torch.nn.Module}，以及各种层和激活函数）
+        \item 定义损失函数（\mintinline{python}{torch.nn}）
+        \item 定义优化器（\mintinline{python}{torch.optim}）、学习率调度器（\mintinline{python}{torch.optim.lr_scheduler}）
+    \item 训练模型（前向传播、计算损失、反向传播、更新参数）
+    \item 评估模型（设置模型为评估模式，计算评估指标）
+\end{enumerate}
+
+\section[Git和GitHub]{Git和GitHub\protect\footnote{我以前写过这个，这里直接整个复制过来。}}
+
+试想以下环境：我们正在写一项作业，开发工作已经基本完成，试运行也能够得到90分。此时我们希望进一步精进代码，使得分数达到95分以上；但是经过一通修改以后，发现程序再也运行不起来了。这时候距离ddl只有1小时，我们决定摆烂，提交能够得到90分的代码。然后我们根据记忆改回原来的代码的时候，发现我们再也想不起来旧代码是怎么写的了！这无疑是令人极为懊恼的。
+
+再试想另一个环境：假设我们正在开发一个大型项目，项目中有很多人参与开发。如果使用传统的方式来分发代码，那么每个人都要手动下载代码，修改代码，然后再上传代码。这时候就会出现很多问题，例如代码冲突、版本不一致等。那这就需要专门的一个人或者几个人来管理代码的版本和分发，但是这样就会显著增加工作量和复杂度。
+
+为了避免以上问题，我们引入了版本控制（VCS）系统。一般来说，VCS系统可以分为两类：集中式版本控制系统（CVCS，也叫中心化的）和分布式版本控制系统（DVCS，也叫去中心化的）。集中式版本控制系统的特点是所有的代码都存储在一个中心服务器上，所有的开发者都需要从中心服务器上下载代码，然后再上传代码；而分布式版本控制系统的特点是每个开发者都有一份完整的代码库，所有的操作都是在本地进行的，然后再将修改推送到中心服务器上。这样就可以避免代码冲突、版本不一致等问题。
+
+2002 年以前，Linux 内核开发完全依赖于 Linus 一个人手工检查并合并全世界发来的补丁，这样工作量非常大。于是，Linus 的一个朋友介绍了 BitMover 公司开发的商业 VCS 软件 BitKeeper 免费授权给 Linux 开发团队使用。此举招致了 FSF 的 RMS 等人的批评，认为在自由软件开发中使用非自由软件是“道德上有污点”的行为。但是作为实用主义者的 Linus 并不在意这些事情，BitKeeper 作为去中心化的 VCS，满足了 Linus 的需求。然而好景不长，有 Linux 内核开发者逆向了 BitKeeper 的协议，致使 BitMover 公司在 2005 年决定收回其授权。Git 就是在这种条件下诞生的，据说第一版 Git 是 Linus 利用 1 周休假时间完成的。随着Linux的广泛应用，Git也逐渐成为了最流行的去中心化版本控制系统，也是目前最流行的版本控制系统。
+
+\subsection{Git的工作原理}
+
+Git有三个目录共同完成版本控制：工作区、暂存区、版本库。工作区是项目目录，暂存区是一个隐藏的文件夹.git，版本库是一个隐藏的文件夹.git/objects。工作区是我们平时使用的目录，暂存区是Git用来存储修改的地方，版本库是Git用来存储所有版本信息的地方。版本库有一个指针，指向当前版本的某一节点（一般指向最新的节点）。每个节点都有一个唯一的哈希值\footnote{哈希（Hash，也叫散列）指的是固定长度、像指纹一样的唯一小串字符，可用于快速校验、查找或加密等功能。}，用来标识该节点。每个节点包含了该版本的所有文件和目录的信息，以及指向上一个版本的指针。Git使用哈希值来标识每个版本，这样可以保证每个版本都是唯一的。
+
+这样讲解很难以理解，我们不妨举例说明：现在，Git中有一个版本为X的节点，包括文件A和文件B两个文件。这些文件存储在版本库中。此时，工作区为空，暂存区为空，指针指向X。我现在希望对它们进行修改，这个修改遵循以下过程：
+
+\begin{enumerate}
+    \item 我拿出了这些文件，并且对文件A进行修改。此时，工作区有AB两个文件，但是暂存区依然是空的。我们的任何修改都不会被暂存区记录，Git也不会知道我对这些文件进行了修改。
+    \item 我觉得修改差不多了，现在把A放进暂存区。现在Git知道我对A进行了一些修改了。
+    \item 我又对B进行了类似的修改，此时B也进暂存区了。
+    \item 我觉得修改差不多了。我认为我应该永久保存目前的状态，于是就把暂存区提交到版本库。此时版本库多了一个Y节点，指针也指向Y节点，有修改过的AB两个文件。此时，暂存区又清空了，而工作区和版本库的Y版本一致。
+\end{enumerate}
+
+\subsection{下载Git}
+
+对于Windows用户，一个最简单的方式是使用Winget包管理器：
+
+\begin{minted}{bash}
+    winget install Microsoft.git
+\end{minted}
+
+或者你也可以从官方网站上下载并安装之。同样，安装的时候一定要勾选“添加到PATH”这一选项，否则你在命令行中无法使用Git。
+
+\subsection{Git信息设置}
+
+安装并使用Git的第一步是先编辑本地的一些信息。Git的提交需要一个用户名和一个邮箱，来对应每次提交的作者。我们可以使用以下命令来设置这些信息：
+
+\begin{minted}{bash}
+    git config --global user.name "Your Name"
+    git config --global user.email "email@example.com"
+\end{minted}
+
+这样即可设置全局用户名和邮箱。如希望给某个特定仓库设置特定的用户名和邮箱，你需要在该仓库下重新执行上述命令，但是不写--global命令。
+
+现代Git一般提倡使用main作为根分支的名称。而Git依然使用旧的master分支作为根分支，你可以使用以下命令修改为main：
+
+\begin{minted}{bash}
+    git config --global init.defaultBranch main
+    # 这条命令会修改全局的默认分支名称
+\end{minted}
+
+\subsection{Git的最基本使用}
+
+\subsubsection{提交}
+
+要具体地在某一目录下进行版本控制，我们需要在命令行中进入到我们希望使用Git的目录下。然后我们可以使用以下命令来初始化一个Git仓库：
+
+\begin{minted}{bash}
+    git init
+\end{minted}
+
+如果你在视窗中开启了“显示隐藏文件”这类功能，你就会发现一个隐藏的文件夹.git出现在了你当前的目录下。这个文件夹就是Git用来存储版本信息的地方。
+
+然后你可以使用以下命令来添加文件到Git仓库中（这个命令的实际意义是把文件添加到暂存区）；
+
+\begin{minted}{bash}
+    git add <filename>
+\end{minted}
+
+如果我们忘记了当前状态下有哪些文件被修改了，我们可以使用以下命令来查看当前状态：
+\begin{minted}{bash}
+    git status
+\end{minted}
+
+如果你觉得修改差不多了，保存文件以后，你可以使用以下命令来提交文件到Git仓库中（这个命令的实际意义是把暂存区的文件提交到版本库中）：
+
+\begin{minted}{bash}
+    git commit -m "commit message"
+\end{minted}
+
+上述内容中，-m后面是提交信息。提交信息是对本次提交的简要描述。我们建议每次提交都写上简要的提交信息，这样可以帮助我们更好地理解代码的修改历史。
+
+\subsubsection{回退}
+
+如果出现了先前我们说的不小心写坏了的情况，这时候就可以进行版本回退了。我们可以使用以下命令来查看当前的版本信息：
+
+\begin{minted}{bash}
+    git log # 例如版本库是a-b-c-d-e-f-g
+\end{minted}
+
+找到你希望回退到的版本的哈希值（前几位即可），然后使用以下命令来回退到该版本（这个命令会把指针回退到指定的版本，丢弃之后的所有内容，然后丢弃暂存区和工作区的所有东西）：
+
+\begin{minted}{bash}
+    git reset --hard <commit_hash>
+    # 请谨慎使用这一命令！该命令不会保留当前的修改！
+\end{minted}
+
+如果你希望回退到某个版本，但是不想丢失当前的修改，你可以使用以下命令来回退到该版本（这个命令会把版本库后面的东西全部丢弃，清空暂存区，但是保留当前工作区）：
+\begin{minted}{bash}
+    git reset --mixed <commit_hash>
+    # 我们更加推荐这个回退方式，--mixed可以省略，或者用--soft替代。
+    # 用--soft替代时，不会清空暂存区。
+\end{minted}
+
+回退操作虽然会把指针回退到指定的版本并丢弃之后的版本，但是之后的版本提交依然存在于版本库中，只是被从树上摘下来了。这些提交被称为“孤立提交”。实际上，对于Git分支上的所有删除或回退操作，都是摘下了某些提交，使其成为孤立提交。如果希望恢复或者删除这些孤立提交，可以执行以下命令：
+\begin{minted}{bash}
+    git fsck --lost-found # 查看孤立提交、孤立分支等
+    git checkout <commit_hash> # 进入分离头模式
+    git branch <branch_name> # 创建一个分支来恢复孤立提交
+
+    git gc --prune=now # 清理孤立提交
+\end{minted}
+即使我们不使用 \texttt{git gc} 手动清理孤立提交，随着时间的推移（一般是90天提交记录过期），孤立提交也会被Git逐渐自动清理掉。
+
+所谓“分离头模式”，是指当前的HEAD指针不指向任何分支，而是直接指向某个提交。这时候，我们可以查看该提交的内容，但是无法进行提交操作。如果我们想要在这个状态下进行提交操作，我们需要先创建一个新的分支，并切换到该分支上（具体操作见后文）。
+
+\subsubsection{排除相关文件}
+
+有时候我们版本跟踪的时候不需要跟踪一些文件，例如具有敏感信息的文件（如密码），或者构建文件等。此时，我们可以创建一个文件 .gitignore 来阻止跟踪。例如，在Linux下，构建文件往往是*.o。那么我们可以在上述文件中加入 *.o ，之后git就会忽略这些文件。
+
+\texttt{.gitignore} 文件应当该放在Git仓库的根目录下，并且必须被跟踪。其中的文件名应一行一个。
+
+如果试图对Git已经跟踪的文件进行排除，Git是不会理会的。此时，我们需要先把这些文件从Git中删除掉（这个命令的实际意义是把文件从暂存区和版本库中删除掉，但是保留工作区中的文件），然后再把这些文件添加到.gitignore中：
+\begin{minted}{bash}
+    git rm --cached <filename>
+    # 这个命令会把文件从Git中删除掉，但是保留工作区中的文件。
+    # 之后再把这些文件添加到.gitignore中。
+\end{minted}
+
+\subsubsection{查看历史记录}
+
+在非视窗的情况下，我们可以使用以下命令来查看提交历史记录：
+\begin{minted}{bash}
+    git log
+\end{minted}
+这会显示所有的提交记录，包括提交的哈希值、作者、日期和提交信息。如果我们希望查看更简洁的历史记录，可以使用以下命令：
+\begin{minted}{bash}
+    git log --oneline
+\end{minted}
+
+\subsubsection{打包备份}
+
+有些时候，我们需要把当前的Git仓库打包成一个压缩文件，以便于备份或者传输。容易想到的一个手段是直接把工作区目录打包成一个压缩文件，但是这样会包含.git目录；另一方面，有些文件是被.gitignore忽略掉的，不希望被打包进去。此时，我们可以使用以下命令来打包Git仓库：
+
+\begin{minted}{bash}
+    git archive -o ../backup.zip HEAD
+\end{minted}
+其中，\verb|-o|选项指定了输出文件的路径，\verb|HEAD|表示当前分支的最新提交。这样会把当前分支的所有文件打包成一个zip文件，忽略掉.gitignore中指定的文件，这也不会把.git目录打包进去。如果要指明其他特定分支的某个提交，可以把\verb|HEAD|替换为对应的分支名称或者提交哈希值。
+
+\subsubsection{比较差异}
+
+我们可以使用以下命令来比较当前工作区和最新提交之间的差异：
+\begin{minted}{bash}
+    git diff
+\end{minted}
+这会显示所有修改过的文件和具体的修改内容。如果我们希望比较某个文件的差异，可以使用以下命令：
+\begin{minted}{bash}
+    git diff <filename>
+\end{minted}
+
+\subsection{分支管理}
+
+实际上，刚才提到的许多简单功能使用VS Code等软件自带的GUI，大多可以很方便的完成。但下面的这些高级功能，使用GUI不是很方便，建议使用命令行。
+
+有时候我们想同时开发新功能，并且调优以前的代码，这样可能就需要两条线进行开发。这时，分支相关的功能就会很有帮助。Git 的分支功能允许我们在同一个仓库中创建多个独立的开发线，每个分支可以独立地进行提交和修改。
+
+我们可以做如下假设：已经有一个名为main的分支，并已经有了一列提交记录A、B、C。现在，我希望开发一个新的功能，但是不想影响到main分支上的代码。这时，我们可以创建一个新的分支，例如feature，并在该分支上进行开发。
+
+\subsubsection{创建和切换分支}
+
+可以使用以下命令创建一个新的分支并切换到该分支：
+\begin{minted}{bash}
+git checkout -b feature
+\end{minted}
+
+以上等价于执行
+\begin{minted}{bash}
+git branch feature <commit-hash of C>
+git checkout feature
+\end{minted}
+
+如果我现在想要回到main分支，可以使用以下命令：
+\begin{minted}{bash}
+git checkout main
+\end{minted}
+
+\subsubsection{分支变基}
+
+如果我们已经在feature分支上进行了多次提交F、G，同时在main分支上也有了新的提交D、E。现在想要将feature这些提交变基到main分支上，可以使用以下命令：
+\begin{minted}{bash}
+  git rebase main
+  git checkout main
+\end{minted}
+这样会把上述feature上的三个提交从C变基到E，变成F'和G'。
+
+变基操作会改变提交的哈希值。
+
+\subsubsection{合并分支和冲突解决}
+
+如果我们想要将feature分支上的代码合并（不是变基）到main分支上，可以使用以下命令：
+
+\begin{minted}{bash}
+git checkout main
+git merge feature
+\end{minted}
+
+这时候我们在main分支上，并试图将E和G合并在一起。这时，会自动创建一个特殊的提交Merge，它有两个父提交。之后的提交就会以Merge为父提交，而不是E或G中的任何一个。
+
+如果这两个提交没有冲突，那么合并会自动完成。但是如果有冲突（例如两个分支涉及到同一行的修改），Git 会提示我们解决冲突。此时，我们不得不手动解决冲突。我们会看到以下内容（或者其英文版本）：
+\begin{minted}{bash}
+自动合并 example1.txt
+冲突（内容）：合并冲突于 example1.txt
+自动合并失败，修正冲突然后提交修正的结果。
+\end{minted}
+此时，我们需要打开冲突的文件，手动解决冲突。Git 会在冲突的地方插入标记，例如：
+\begin{minted}{bash}
+  <<<<<<< HEAD
+  这是 main 分支上的内容。
+  =======
+  这是 feature 分支上的内容。
+  >>>>>>> feature
+\end{minted}
+我们需要手动编辑这个文件，删除这些标记，并保留我们想要的内容。
+
+如果使用Code等编辑器，通常会有冲突解决的工具，可以帮助我们更方便地解决冲突。
+
+解决完冲突后，我们需要使用以下命令来标记冲突已解决：
+\begin{minted}{bash}
+  git add .
+  git merge --continue
+\end{minted}
+
+\subsubsection{删除分支}
+
+如果我们已经完成了feature分支上的开发，并且已经将其合并到main分支上，可以使用以下命令删除该分支：
+\begin{minted}{bash}
+git branch -d feature
+\end{minted}
+
+一般不建议直接删除分支，而是使用  \texttt{-d}  选项来删除已经合并的分支。如果分支没有被合并，可以使用  \texttt{-D}  选项强制删除。
+
+\subsubsection{压缩提交}
+
+有时候，我们在开发过程中，可能会有很多小的提交，这些提交可能是一些临时的修改或者调试信息。为了保持代码和版本库的整洁，我们可以使用 Git 的压缩提交功能，将多个提交合并为一个提交。这个压缩功能被称作是\textbf{Squash}，但是特别注意：没有 \texttt{git squash} 命令。
+
+我们一般只在分支合并的时候使用压缩提交。可以使用以下命令中的一个来压缩提交：
+\begin{minted}{bash}
+git merge --squash feature
+\end{minted}
+
+\subsection{标签管理}
+标签（Tag）是 Git 中用于标记特定提交的功能。标签通常用于标记版本发布或重要的里程碑。与分支不同，标签是静态的，不会随着提交而移动。
+
+\subsubsection{创建标签}
+可以使用以下命令创建一个标签：
+\begin{minted}{bash}
+git tag v1.0
+\end{minted}
+
+这将创建一个名为 v1.0 的标签，指向当前的提交。如果需要为特定的提交创建标签，可以在命令中指定提交的哈希值：
+\begin{minted}{bash}
+git tag v1.0 <commit-hash>
+\end{minted}
+
+\subsubsection{查看标签}
+可以使用以下命令查看所有标签：
+\begin{minted}{bash}
+git tag
+\end{minted}
+
+\subsubsection{删除标签}
+如果需要删除一个标签，可以使用以下命令：
+\begin{minted}{bash}
+git tag -d v1.0
+\end{minted}
+
+\subsection{“摘樱桃”}
+
+Cherry-Pick（摘樱桃）操作（也叫挑拣）是指从一些提交中选择一些特定的提交（修改），并将这些提交（修改）应用到当前分支上。这适用于当我们只想要一些特定的提交而不是整个分支的所有提交的时候。
+
+一般，CherryPick操作很难使用命令行来操作，其复杂程度过高。我们可以使用VS Code的自带Git视窗或者GitLens等工具来进行这个操作。
+
+使用视窗进行挑拣非常方便，我们只需要在提交列表中选择需要的提交，然后右键点击“Cherry-Pick”（汉化应该是挑拣）即可。这样会将选中的提交应用到当前分支上。
+
+\subsection{在VS Code中配置Git}
+
+在VS Code中配置Git同样非常简单。只需要安装Git，并确保Git的可执行文件在系统的PATH环境变量中。然后在VS Code中打开一个Git仓库，VS Code会自动识别并启用Git功能。
+
+VS Code为Git提供了一个视窗化界面，可以方便地进行版本控制操作，例如提交、推送、拉取等。你可以在左侧的活动栏中找到Git图标，点击它即可打开Git视图。另外，还有GitLens这个扩展也相当不错，该扩展提供了更多的Git功能和视图，例如查看提交历史、比较分支等，只可惜没有中文版。
+
+纵然如此，我个人依然推荐使用命令行进行Git操作，因为命令行提供了更高的灵活性和控制力。
+
+\subsection{GitHub}
+很多项目无法只在一台机器上进行开发，往往都需要在远程部署一个仓库（例如GitHub、GitLab等，或者公司自建库），然后将本地的代码推送到远程仓库中。这样，我们就可以在不同的机器上从远程仓库中拉取代码，从而保证代码的一致性。
+
+在本节，我们将使用 GitHub 作为远程仓库的示例，介绍如何将本地仓库与远程仓库进行关联、推送和拉取代码。
+
+\subsubsection{GitHub界面指南}
+
+\begin{tip}
+    GitHub是美国的网站，它也并没有提供任何其他语言界面，因此只有英文界面。
+
+    如果阅读英文有困难，可以使用浏览器的翻译插件来帮助我们理解界面内容，也可以使用这个插件：\faGithub\url{https://github.com/maboloshi/github-chinese}。当然，后者需要油猴（Tampermonkey）等脚本管理器的支持。
+\end{tip}
+
+我们打开GitHub的一个仓库的时候，在上面的一栏中，我们可以看到以code、issues、pull requests等为标题的选项卡。每个选项卡对应着一个功能模块。
+
+\begin{itemize}
+    \item \textbf{Code}：代码模块，显示仓库中的代码文件和目录结构。我们可以在这里浏览代码、下载代码、查看提交历史等。
+    \item \textbf{Issues}：问题模块，用于跟踪和管理项目中的问题和任务。我们可以在这里创建新的问题、查看已有的问题、评论和解决问题等。在Gitea上，问题模块被称为“工单”（Tasks），这与它常用于公司自建库的特点有关。
+    \item \textbf{Pull Requests}：合并请求模块，用于管理代码的合并和审查。我们可以在这里创建新的合并请求、查看已有的合并请求、评论和审查代码等。Pull Request（简称 PR）是 GitHub 和 GitLab 等平台提供的一种代码审查和合并的机制。
+    \item \textbf{Actions}：自动化模块，用于管理项目的自动化工作流。我们可以在这里创建新的工作流、查看已有的工作流、运行和调试工作流等。
+    \item \textbf{Projects}：项目模块，用于管理项目的进度和任务。我们可以在这里创建新的项目、查看已有的项目、添加任务和卡片等。
+    \item \textbf{Wiki}：维基模块，用于管理项目的文档和知识库。我们可以在这里创建新的页面、编辑已有的页面、添加图片和链接等。GitHub Wiki 是 GitHub 提供的一种文档管理工具，可以帮助我们编写和维护项目的说明文档。
+    \item \textbf{Security}：安全模块，用于管理项目的安全性和漏洞。我们可以在这里查看项目的安全报告、修复漏洞、配置安全策略等。
+    \item \textbf{Insights}：洞察模块，用于分析项目的活动情况，例如提交历史、问题和合并请求的统计信息等。我们可以在这里查看项目的活跃度、贡献者的统计信息、代码的质量和覆盖率等。
+    \item \textbf{Settings}：设置模块，用于管理项目的设置和配置。我们可以在这里修改项目的名称、描述、权限等属性。
+\end{itemize}
+除了这些意外，有的仓库还有Discussions和Sponsors等选项卡。Discussions是讨论区功能，可以帮助我们在项目中进行讨论和交流。Sponsors是GitHub提供的一个赞助功能，可以帮助我们为开源项目提供资金支持。
+
+靠下一行就是仓库的名称，右面是仓库的描述和一些操作按钮。Star 用来标记喜欢的仓库，Fork 用来复制仓库到自己的账户下，Watch 用来关注仓库的更新。
+
+再靠下一行，我们可以看到仓库的分支（Branch）和提交（Commit）信息。分支是代码的不同版本，提交是代码的历史记录。我们可以在这里切换分支、查看提交历史、比较不同分支的差异等。同一行的那个绿色的Code按钮是用来下载代码的，可以选择下载为 ZIP 文件或者使用 Git 克隆仓库。我们非常推荐使用 Git 克隆仓库，因为这样可以更方便地管理代码和提交。
+
+页面的左下方部分，在文件目录之下，是仓库的readme文件内容。README 文件是仓库的说明文档，通常包含项目的介绍、安装和使用说明、贡献指南等信息。我们可以在这里查看项目的详细信息。
+
+页面右侧的一列是仓库的统计信息，包括提交历史、分支、标签、贡献者等。我们可以在这里查看项目的活跃度、贡献者的统计信息、代码的质量和覆盖率等。同时，我们也可以在这里找到仓库的发行版等信息。
+
+\subsubsection{创建仓库}
+首先，我们需要在 GitHub 上创建一个新的仓库。创建完成后，GitHub 会提供一个远程仓库的 URL，例如：
+\begin{minted}{text}
+  https://github.com/YourName/example.git
+\end{minted}
+我们可以在GitHub上的仓库页面中找到这个 URL。
+
+接下来，我们需要将本地仓库与远程仓库关联。可以使用以下命令：
+\begin{minted}{bash}
+git remote add origin <your-repo-url>
+\end{minted}
+这将把远程仓库的 URL 添加为名为 origin 的远程仓库。origin 是习惯上的远程仓库名称。
+
+现在我们要将这个本地仓库的代码推送到远程仓库中。可以使用以下命令：
+\begin{minted}{bash}
+git push -u origin main
+\end{minted}
+这里的  \texttt{-u}  选项表示将本地的 main 分支与远程的 main 分支关联起来，以后可以直接使用  \texttt{git push}  和  \texttt{git pull}  命令进行推送和拉取。
+
+如果本地分支名称和远程有区别，（例如本地仓库主要分支是master，而远程仓库的主要分支是main），我们可以使用以下命令来推送代码：
+\begin{minted}{bash}
+git push -u origin master:main
+\end{minted}
+这将把本地的 master 分支推送到远程的 main 分支。
+
+\subsubsection{使用仓库}
+
+如果你是仓库的使用者，想要从远程仓库中拉取代码（但是本地没有这个仓库），可以使用以下命令：
+
+\begin{minted}{bash}
+git clone <your-repo-url>
+\end{minted}
+
+这样会在本地创建一个\textbf{新的}目录，并将远程仓库的代码克隆到该目录中。在克隆代码的时候，Git 会自动创建与远程同名的分支，并把它们与远程的 main 分支关联起来。
+
+如果你已经有了本地仓库，并且想要将远程仓库的代码拉取到本地，经典的操作是以下命令：
+\begin{minted}{bash}
+git pull origin main
+\end{minted}
+直接使用  \texttt{git pull}  命令也是可以的，因为我们之前已经使用  \texttt{-u}  选项将本地分支与远程分支关联起来了。然而，需要注意的是现代的拉取操作往往不推荐使用  \texttt{git pull}  命令，因为它会自动合并远程分支的代码到本地分支，这可能会导致冲突。更推荐的做法是先使用  \texttt{git fetch}  命令拉取远程仓库的代码，然后再手动合并：
+\begin{minted}{bash}
+git fetch origin
+git merge origin/main
+\end{minted}
+这样可以更好地控制合并过程，避免自动合并带来的问题。
+
+\begin{tip}
+    \texttt{origin/main} 可以初步理解为远程仓库 origin 上的 main 分支。但是，它和真正的“分支”并不完全一样。它是一个特殊的引用，指向远程仓库 main 分支的最新提交。当我们使用  \texttt{git fetch}  命令拉取远程仓库的代码时，Git 会更新这个引用，使其指向远程仓库 main 分支的最新提交。
+
+    这个引用是在本地且只读的，永远忠实地反映远程仓库的上一次状态，故而checkout到这个分支上会进入分离头模式。
+
+    如果别人在你之后推送了代码，而你没fetch，你的 origin/main 就是过时的，它并不能代表远程仓库此时此刻的真实状态。此时，执行\texttt{git status} 会提示你本地分支落后于远程分支，建议你先拉取远程仓库的代码。
+
+    如果没有fetch就直接在本地做出了一些修改，并且执行\texttt{git push}，则会失败（因为你并没有基于最新的origin/main进行修改）。此时必须先把远程仓库的代码拉取到本地，解决可能的冲突，然后再推送本地的修改。
+\end{tip}
+
+如果你在本地做出了一些修改，想要将这些修改推送到远程仓库，可以使用以下命令：
+\begin{minted}{bash}
+git push origin main
+\end{minted}
+直接使用  \texttt{git push}  命令也可以。
+
+如果存在某些提交在远程仓库中，而本地仓库没有这些提交，Git 会提示你先拉取远程仓库的代码，然后再推送本地的修改。这是因为 Git 不允许直接推送到远程仓库，除非本地仓库是最新的。如果你确定你不需要远程仓库的提交，可以使用以下命令强制推送本地的修改：
+\begin{minted}{bash}
+git push -f origin main
+\end{minted}
+
+\begin{warning}
+    强制推送会覆盖远程仓库的代码，可能会导致其他工作丢失，在实际工作中可能触发真人线下快打或提桶跑路CG。所以，务必谨慎使用强制推送，确保你知道你在做什么，并且已经备份了重要的代码。
+\end{warning}
+
+\subsubsection{更改关联}
+
+有些时候，我们从远程仓库克隆了一个仓库，但是后来希望将其关联到另一个远程仓库。例如从别人的仓库克隆了代码，但是希望将其推送到自己的仓库中。此时，我们可以使用以下命令来更改远程仓库的 URL：
+\begin{minted}{bash}
+git remote set-url origin <new-repo-url>
+\end{minted}
+这样会将远程仓库的 URL 更改为新的 URL。
+
+\end{document}

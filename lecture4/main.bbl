@@ -1,0 +1,144 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.3 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{ynt/global//global/global/global}
+    \entry{ioffe2015batchnormalizationacceleratingdeep}{misc}{}{}
+      \name{author}{2}{}{%
+        {{hash=5543e82359e26b035efc009cb3efff9d}{%
+           family={Ioffe},
+           familyi={I\bibinitperiod},
+           given={Sergey},
+           giveni={S\bibinitperiod}}}%
+        {{hash=ed568d9c3bb059e6bf22899fbf170f86}{%
+           family={Szegedy},
+           familyi={S\bibinitperiod},
+           given={Christian},
+           giveni={C\bibinitperiod}}}%
+      }
+      \strng{namehash}{7e8dee717d54c2984b1c6bd3f3c0561f}
+      \strng{fullhash}{7e8dee717d54c2984b1c6bd3f3c0561f}
+      \strng{fullhashraw}{7e8dee717d54c2984b1c6bd3f3c0561f}
+      \strng{bibnamehash}{7e8dee717d54c2984b1c6bd3f3c0561f}
+      \strng{authorbibnamehash}{7e8dee717d54c2984b1c6bd3f3c0561f}
+      \strng{authornamehash}{7e8dee717d54c2984b1c6bd3f3c0561f}
+      \strng{authorfullhash}{7e8dee717d54c2984b1c6bd3f3c0561f}
+      \strng{authorfullhashraw}{7e8dee717d54c2984b1c6bd3f3c0561f}
+      \field{labelalpha}{IS15}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{eprintclass}{cs.LG}
+      \field{eprinttype}{arXiv}
+      \field{title}{Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift}
+      \field{year}{2015}
+      \verb{eprint}
+      \verb 1502.03167
+      \endverb
+      \verb{urlraw}
+      \verb https://arxiv.org/abs/1502.03167
+      \endverb
+      \verb{url}
+      \verb https://arxiv.org/abs/1502.03167
+      \endverb
+    \endentry
+    \entry{santurkar2019doesbatchnormalizationhelp}{misc}{}{}
+      \name{author}{4}{}{%
+        {{hash=bb66a5fcd7966034f5477f12cf059156}{%
+           family={Santurkar},
+           familyi={S\bibinitperiod},
+           given={Shibani},
+           giveni={S\bibinitperiod}}}%
+        {{hash=240422b4c9d0d047da2b6f51d9220b59}{%
+           family={Tsipras},
+           familyi={T\bibinitperiod},
+           given={Dimitris},
+           giveni={D\bibinitperiod}}}%
+        {{hash=924b414be21dcfc4f4f9f08196520746}{%
+           family={Ilyas},
+           familyi={I\bibinitperiod},
+           given={Andrew},
+           giveni={A\bibinitperiod}}}%
+        {{hash=155359c985c7d112498d27d32ad89bfe}{%
+           family={Madry},
+           familyi={M\bibinitperiod},
+           given={Aleksander},
+           giveni={A\bibinitperiod}}}%
+      }
+      \strng{namehash}{5616016bf46b4397fdcdc25870ca89dd}
+      \strng{fullhash}{633293d1151716344015b7d9191e7aa4}
+      \strng{fullhashraw}{633293d1151716344015b7d9191e7aa4}
+      \strng{bibnamehash}{5616016bf46b4397fdcdc25870ca89dd}
+      \strng{authorbibnamehash}{5616016bf46b4397fdcdc25870ca89dd}
+      \strng{authornamehash}{5616016bf46b4397fdcdc25870ca89dd}
+      \strng{authorfullhash}{633293d1151716344015b7d9191e7aa4}
+      \strng{authorfullhashraw}{633293d1151716344015b7d9191e7aa4}
+      \field{labelalpha}{San+19}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{eprintclass}{stat.ML}
+      \field{eprinttype}{arXiv}
+      \field{title}{How Does Batch Normalization Help Optimization?}
+      \field{year}{2019}
+      \verb{eprint}
+      \verb 1805.11604
+      \endverb
+      \verb{urlraw}
+      \verb https://arxiv.org/abs/1805.11604
+      \endverb
+      \verb{url}
+      \verb https://arxiv.org/abs/1805.11604
+      \endverb
+    \endentry
+    \entry{kexuefm-6992}{online}{}{}
+      \name{author}{1}{}{%
+        {{hash=e2a24e84e2f7cf71cb651113db20a308}{%
+           family={苏剑林},
+           familyi={苏\bibinitperiod}}}%
+      }
+      \strng{namehash}{e2a24e84e2f7cf71cb651113db20a308}
+      \strng{fullhash}{e2a24e84e2f7cf71cb651113db20a308}
+      \strng{fullhashraw}{e2a24e84e2f7cf71cb651113db20a308}
+      \strng{bibnamehash}{e2a24e84e2f7cf71cb651113db20a308}
+      \strng{authorbibnamehash}{e2a24e84e2f7cf71cb651113db20a308}
+      \strng{authornamehash}{e2a24e84e2f7cf71cb651113db20a308}
+      \strng{authorfullhash}{e2a24e84e2f7cf71cb651113db20a308}
+      \strng{authorfullhashraw}{e2a24e84e2f7cf71cb651113db20a308}
+      \field{labelalpha}{苏剑林19}
+      \field{sortinit}{2}
+      \field{sortinithash}{8b555b3791beccb63322c22f3320aa9a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{month}{10}
+      \field{title}{BN究竟起了什么作用？一个闭门造车的分析}
+      \field{year}{2019}
+      \verb{urlraw}
+      \verb https://spaces.ac.cn/archives/6992
+      \endverb
+      \verb{url}
+      \verb https://spaces.ac.cn/archives/6992
+      \endverb
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+

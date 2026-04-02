@@ -1,0 +1,133 @@
+\documentclass[12pt]{ctexart}
+\usepackage{amsmath, amssymb, amsfonts, amsthm}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\geometry{a4paper, margin=1in}
+
+\title{\textbf{人工智能基础 \quad 第一次作业}}
+\author{人工智能基础教学组}
+\date{}
+
+\newtheorem{theorem}{\indent 定理}
+\newtheorem{lemma}[theorem]{\indent 引理}
+\newtheorem{proposition}[theorem]{\indent 命题}
+\newtheorem{corollary}[theorem]{\indent 推论}
+\newtheorem{definition}{\indent 定义}
+
+\begin{document}
+\maketitle
+
+通过前几次课的学习，我们知道了机器学习的基本流程：
+\begin{itemize}
+    \item 数据处理和特征工程；
+    \item 定义模型、损失函数等；
+    \item 训练模型（前向传播、反向传播）；
+    \item 模型评估和调优。
+\end{itemize}
+我们在上课的时候知道了一些名词，例如损失函数、学习率、激活函数、欠拟合/过拟合、正则化等内容。在本次作业中，我们将通过理论的形式，来深入理解这些概念。
+
+\begin{quote}
+    \color{red}
+    \textbf{你在完成这些作业的时候，可以参考上课的内容，也可以参考相关的教材和资料，也可以使用计算机来辅助你完成计算题，但请不要直接抄袭LLM生成的、或别人完成的答案。}
+\end{quote}
+
+
+
+\section{损失函数和学习率}
+
+现有线性回归：$\hat{y} = \mathbf{W}^\top \mathbf{x} + b$，其中$\mathbf{W}, \mathbf{x} \in \mathbb{R}^4$，$b \in \mathbb{R}$。损失函数 $\mathcal{L}$ 为均方误差损失函数（MSE）。记$\mathbf{W}_{n}$为第$n$次迭代时的权重向量，$b_n$为第$n$次迭代时的偏置项，$n \in \mathbb{N}^+$。
+
+\begin{enumerate}
+    \item 请简单解释“损失函数”和“学习率”的概念，及其在机器学习中的作用。
+    \item 请写出上述实例中损失函数 $\mathcal{L}$ 的表达式。
+    \item 我们知道，\textbf{机器学习的核心操作是通过优化学习参数来降低损失函数的值}。损失函数在极小值点处，其全导数为0，对于每一个参数$\theta$的偏导数$\frac{\partial \mathcal{L}}{\partial \theta}$也是0。请写出$\mathcal{L}$关于$\mathbf{W}$和$b$的偏导数表达式。
+    \item 我们知道，对于大多数损失函数$\mathcal{L}$，方程$\frac{\partial \mathcal{L}}{\partial \theta} = 0$没有解析解或求解析解非常困难，所以我们必须采用其他手段来求数值解。牛顿法是求方程数值解的一个手段。所以请写出用牛顿法求$\mathbf{W}_{n+1}$和$\mathbf{W}_n$之间的关系。在这里，损失函数的梯度用$\nabla\mathcal{L}(\mathbf{W}_n, b_n)$表示，二阶梯度用$\nabla^2\mathcal{L}(\mathbf{W}_n, b_n)$表示即可。
+    \item 在使用牛顿法求解时，我们需要计算$\mathcal{L}$对$\mathbf{W}$和$b$的二阶导数（即海森矩阵），并对该矩阵求逆，在实际操作中由于其时间复杂度为$O(n^3)$所以不可接受。因此用一阶优化（梯度下降）来求数值解。请写出用梯度下降法求$\mathbf{W}_{n+1}$和$\mathbf{W}_n$之间的关系。
+    \item 对比牛顿优化法和梯度下降优化法的异同，回答以下问题：
+    \begin{enumerate}
+        \item $\eta$在梯度下降法中替代了牛顿优化法的什么部分？这样做有什么好处？
+        \item 由上述关系式看出，为什么$\eta$通常是一个小的正数？设为负数或0会发生什么情况？
+        \item 当$\eta$过大时，可能会发生什么情况？当$\eta$过小时，又会发生什么情况？
+    \end{enumerate}
+\end{enumerate}
+
+\section{激活函数及其在神经网络中的作用}
+
+现有多层感知机：
+\begin{align*}
+    \mathbf{h} &= \alpha(\mathbf{W}_1^\top \mathbf{x} + \mathbf{b}_1) \\
+    \hat{y} &= \mathbf{W}_2^\top \mathbf{h} + b_2
+\end{align*}
+其中$\mathbf{W}_1 \in \mathbb{R}^{4 \times 4}$，$\mathbf{b}_1 \in \mathbb{R}^4$，$\mathbf{W}_2 \in \mathbb{R}^4$，$b_2 \in \mathbb{R}$，$\alpha$为激活函数。
+
+\begin{enumerate}
+    \item 请简述“激活函数”在多层感知机中的作用。
+    \item 假设上述题目中：$\alpha(z) = z$。求证：该多层感知机等价于一个线性回归模型。
+    \item 利用上述分析过程，解释在多层神经网络中引入非线性激活函数的必要性。
+    \item 请指出以下常见激活函数的定义：sigmoid、tanh、ReLU，并画出它们的图像。
+    \item 用神经网络解决分类问题时，在神经网络的最后一层还会叠加一个激活函数层，例如softmax层，请写出softmax函数的定义。
+    \item 为什么要在上述神经网络的最后一层使用softmax层？
+\end{enumerate}
+
+\section{欠拟合、过拟合和正则化}
+
+现有单层多项式回归模型：$\hat{y} = w_0 + w_1 x + w_2 x^2 + \cdots + w_4 x^4$，其中$w_i \in \mathbb{R}$，$i = 0, 1, 2, 3, 4$。
+
+记$\mathbf{w} = (w_0, w_1, \ldots, w_4)^\top$，$\mathbf{x} = (1, x, x^2, \ldots, x^4)^\top$，则有$\hat{y} = \mathbf{w}^\top \mathbf{x}$。
+
+初始化：$\mathbf{w} = (0, 0, 0, 0, 0)^\top$，学习率$\eta = 0.1$。损失函数为均方误差损失函数（MSE）。
+
+现有以下$x$和$y$的训练数据集：
+\begin{center}
+    \begin{tabular}{c|cccc}
+        \toprule
+        $x$ & 0 & 1 & 2 & 3 \\
+        \midrule
+        $y$ & 1 & 1.5 & 2 & 2.5 \\
+        \bottomrule
+    \end{tabular}
+\end{center}
+
+测试集：$x=4$，$y=3$。
+
+\begin{enumerate}
+    \item 先不管这个回归模型。请用一个你认为较好的函数来拟合上述数据集，并画出该函数的图像、计算其训练集损失、测试集损失。
+    \item 请写出上述回归模型的损失函数 $\mathcal{L}$ 的表达式。
+    \item 请计算出$\mathbf{w}$在第一次迭代后的值（给出结果即可）。你要使用全部的训练数据来计算损失函数的值，并使用梯度下降法来更新$\mathbf{w}$。
+    \item 在某初始化条件下，迭代100次，发现$\mathbf{w}$的数值变为
+    \[\left[1.0, 24998.75, 45831.96, 24999.25, 4166.54\right]^\top\]
+    请计算当前情形下的训练集损失和测试集损失。
+    \item 请分析可能发生了什么情况，并解释为什么会发生这种情况。
+    \item 请指出L1正则化和L2正则化的定义，并分析：正则化有没有修改损失函数的表达式？有没有修改神经网络的结构？有没有改变神经网络的参数更新过程？请分别分析。
+    \item 除了正则化，还有什么其他方式能够阻止上述题目情形的发生？
+\end{enumerate}
+
+\section{附加题（本题作为Bonus题，非必做）}
+
+我们在第一题中分析了牛顿法和梯度下降法的关系。牛顿法是一个二阶优化方法，梯度下降法是一个一阶优化方法。我们在该题目中极其不严谨地使用了学习率$\eta$来替代了牛顿法中的海森矩阵的逆，实际上如此做法难以服众。
+
+而下面这个证明题能够更严谨地说明为什么在梯度下降法中引入学习率$\eta$能够保证收敛性，甚至给出了一个具体的数值范围$\eta < \frac{2}{L}$来保证收敛性。
+
+\begin{definition}{Lipchitz约束}
+如果存在一个常数$L > 0$使得对于任意的$x_1, x_2$，都有
+\[|f(x_1) - f(x_2)| \leq L |x_1 - x_2|\]
+则称该函数满足Lipchitz约束，$L$被称为Lipchitz常数。
+\end{definition}
+
+现在设损失函数$f(\theta)$的\textbf{梯度}满足Lipchitz约束，其Lipchitz常数为$L$，即
+\[\left|\left|\nabla_\theta f(\theta + \Delta \theta) - \nabla_\theta f(\theta)\right|\right|_2 \leqslant L \|\Delta \theta\|_2\]
+
+这里的下标2指的是取向量的欧几里得范数（即$\sqrt{\sum_i \theta_i^2}$），也就是“模长”。请证明以下两个命题：
+
+\begin{proposition}
+    在使用梯度下降法更新参数$\theta$时，必须满足条件$\left\langle \nabla_\theta f(\theta), \Delta \theta \right\rangle < 0$，才能保证梯度下降法的收敛性。这里$\left\langle \cdots, \cdots \right\rangle$表示内积，$\nabla_\theta f(\theta)$表示损失函数$f$关于参数$\theta$的梯度，$\Delta \theta$表示参数更新的量。
+\end{proposition}
+
+\begin{lemma}
+    当$\Delta \theta = -\eta \nabla_\theta f(\theta)$时，当$\eta < \frac{2}{L}$时，梯度下降法能够保证收敛性。
+\end{lemma}
+
+提示：定义辅助函数$g(t) = f(\theta + t \Delta \theta)$，并分析$g(t)$的性质。
+
+\end{document}
