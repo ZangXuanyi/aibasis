@@ -1,0 +1,89 @@
+\documentclass{ctexbeamer}
+
+\usepackage{minted}
+\usepackage{graphicx}
+% \usepackage[english]{babel}
+\usepackage[bibstyle=alphabetic, backend=biber, sorting=ynt]{biblatex}
+\usepackage{amssymb, amsmath, amsfonts}
+
+\addbibresource{references.bib}
+
+\usefonttheme{serif}
+\usetheme{CambridgeUS}
+
+\setlength{\parskip}{0.5em}
+
+\setminted{
+    baselinestretch=1.0,       % 行间距
+    frame=single,           % 边框样式
+    framesep=2mm,              % 边框间距
+    rulecolor=\color{black},   % 边框颜色
+    breaklines=true,           % 自动换行
+    breakanywhere=false,       % 不在任意位置断行
+    showspaces=false,          % 不显示空格
+    showtabs=false,            % 不显示制表符
+    tabsize=4,                 % 制表符大小
+}
+
+\title{第五次上机课}
+\author{臧炫懿}
+\date{\today}
+
+\begin{document}
+\frame{\maketitle}
+
+\begin{frame}
+    \frametitle{卷积和池化}
+
+    简单理解：一个小的核（Kernel）在一个大图上滑动，计算核覆盖区域的加权和（卷积）或最大值（池化），从而提取特征。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{一些计算}
+
+    假设
+    \begin{itemize}
+        \item 输入张量形状为：$H_\text{in} \times W_\text{in} \times C_\text{in}$，
+        \item 卷积核形状为：$K_H \times K_W \times C_\text{in} \times C_\text{out}$，
+        \item 步幅为：$S_H \times S_W$，填充为：$P_H \times P_W$。
+    \end{itemize}
+
+    以上参数下，输出张量形状为：
+\begin{align}
+H_\text{out} &= \left\lfloor \frac{H_\text{in} - K_H + 2P_H}{S_H} \right\rfloor + 1 \\
+W_\text{out} &= \left\lfloor \frac{W_\text{in} - K_W + 2P_W}{S_W} \right\rfloor + 1 \\
+C_\text{out} &= C_\text{out}
+\end{align}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{一些计算（2）}
+
+    上述卷积层中，可被学习的参数数量为：
+\begin{equation}
+\text{参数数量} = K_H \times K_W \times C_\text{in} \times C_\text{out} + C_\text{out}
+\end{equation}
+其中，$C_\text{out}$ 是卷积核的偏置参数数量。
+
+前面一项是可以理解的，它就是卷积核的权重参数数量，表示每个卷积核在每个输入通道上都有一个权重。
+
+后面一项是卷积核的偏置参数数量，每个输出通道对应一个偏置参数。这些偏置参数在卷积操作中被加到卷积结果上，帮助模型更好地拟合数据。
+
+而如果上述层是一个池化层，则没有可被学习的参数，因为池化操作只是对输入进行固定的统计计算（如最大值或平均值），不涉及权重的更新。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{为什么卷积核是四位张量？}
+
+卷积核是四维张量的原因在于它需要同时处理输入通道和输出通道。具体来说：
+\begin{itemize}
+    \item 输入通道（$C_\text{in}$）：卷积核需要处理输入图像的每个通道。例如，对于RGB图像，输入通道数为3（红、绿、蓝）。
+    \item 输出通道（$C_\text{out}$）：卷积核需要生成多个特征图，每个特征图对应一个输出通道。例如，如果我们想要生成64个特征图，那么输出通道数为64。
+\end{itemize}
+
+\end{frame}
+
+\end{document}
