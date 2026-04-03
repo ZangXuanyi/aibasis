@@ -76,7 +76,7 @@ C_\text{out} &= C_\text{out}
 \end{frame}
 
 \begin{frame}
-    \frametitle{为什么卷积核是四位张量？}
+    \frametitle{为什么卷积核是四维张量？}
 
 卷积核是四维张量的原因在于它需要同时处理输入通道和输出通道。具体来说：
 \begin{itemize}
@@ -84,6 +84,275 @@ C_\text{out} &= C_\text{out}
     \item 输出通道（$C_\text{out}$）：卷积核需要生成多个特征图，每个特征图对应一个输出通道。例如，如果我们想要生成64个特征图，那么输出通道数为64。
 \end{itemize}
 
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{卷积（代码实现）}
+
+    \begin{minted}{python}
+def convolution(input, kernel, stride=1, padding=0):
+    # 添加填充
+    input_padded = np.pad(input, ((padding, padding), (padding, padding), (0, 0)), mode='constant')
+    # 计算输出特征图的形状
+    H_out = (input_padded.shape[0] - kernel.shape[0]) // stride + 1
+    W_out = (input_padded.shape[1] - kernel.shape[1]) // stride + 1
+    C_out = kernel.shape[3]
+    output = np.zeros((H_out, W_out, C_out))
+
+    \end{minted}
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{卷积（代码2）}
+
+    \begin{minted}{python3}
+# 卷积操作
+for h in range(H_out):
+    for w in range(W_out):
+        for c in range(C_out):
+            h_start = h * stride
+            w_start = w * stride
+            h_end = h_start + kernel.shape[0]
+            w_end = w_start + kernel.shape[1]
+            output[h, w, c] = np.sum(input_padded[h_start:h_end, w_start:w_end, :] * kernel[:, :, :, c])
+return output
+    \end{minted}
+
+    
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{手算卷积}
+
+    在算卷积的时候，我们需要将卷积核在输入图像上滑动，并计算每个位置的加权和。具体步骤如下：
+\begin{enumerate}
+    \item 将卷积核放在输入图像的左上角。
+    \item 计算卷积核覆盖区域的加权和，即将卷积核的权重与输入图像对应位置的像素值相乘并求和。
+    \item 将计算结果存储在输出特征图的对应位置。
+    \item 将卷积核向右滑动一个步幅（$S_W$），重复步骤2和3，直到卷积核覆盖完整个输入图像。
+\end{enumerate}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{实例}
+
+    输入：$\begin{bmatrix}1 & 2 & 3 & 2& 1 \\
+4 & 5 & 6 & 5 & 4 \\
+7 & 8 & 9 & 8 & 7 \\
+4 & 5 & 6 & 5 & 4 \\
+1 & 2 & 3 & 2 & 1\end{bmatrix}$，卷积核：$\begin{bmatrix}1 & 0 \\
+0 & 1\end{bmatrix}$，步幅：1，填充：0。
+
+首先确定输出的形状：
+\begin{align}
+H_\text{out} &= \left\lfloor \frac{5 - 2 + 0}{1} \right\rfloor + 1 = 4 \\
+W_\text{out} &= \left\lfloor \frac{5 - 2 + 0}{1} \right\rfloor + 1 = 4 \\
+C_\text{out} &= 1
+\end{align}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{实例}
+
+    那我们算一下最左上角的那个位置的卷积结果：
+\begin{align}
+\text{卷积结果} &= (1 \times 1) + (0 \times 2) + (0 \times 4) + (1 \times 5) \\
+&= 1 + 0 + 0 + 5 \\
+&= 6
+\end{align}
+将这个结果存储在输出特征图的左上角位置。接下来，我们将卷积核向右滑动一个步幅，计算下一个位置的卷积结果，以此类推，直到卷积核覆盖完整个输入图像。最终，我们将得到一个4x4的输出特征图，其中每个元素都是对应位置的卷积结果。
+
+池化的计算方法类似，例如“最大池化”就是在卷积核覆盖的区域内取最大值。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{卷积和池化的数学……}
+
+    实际上，卷积操作为什么有用，在数学上确实是存在一些理论基础的。卷积操作可以看作是一种线性变换，它能够提取输入数据中的局部特征，并且具有平移不变性。这些特性使得卷积在图像处理和计算机视觉等领域非常有效。
+
+    但是这个比我们前几次课讲的全连接层的数学基础复杂得多——但据上节课课后的反馈来看，大家能理解“批量归一化为什么有用”就很不容易了。所以我们这节课就不深入讲卷积和池化的数学基础了，等以后有机会再讲。
+
+    当然，至少值得高兴的是卷积和池化至少还能用数学来描述，因为再怎么说它们也是函数（泛函）；等到了之后的RNN、Transformer等模型，那就“全都是玄学了”（董豪老师语），想用数学描述它们的行为非常困难，比如Transformer“为什么有用”目前还没有一个完全被接受的理论解释。
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{PyTorch中的卷积和池化}
+
+在PyTorch中，卷积层和池化层的实现非常方便：
+\begin{minted}{python}
+class AlexNet(nn.Module):
+    def __init__(self):
+        super(AlexNet, self).__init__()
+        self.conv1 = nn.Conv2d(in_channels=3, out_channels=64, kernel_size=11, stride=4, padding=2)
+        self.pool1 = nn.MaxPool2d(kernel_size=3, stride=2)
+        # 其他层的定义...
+\end{minted}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{经典网络之AlexNet}
+
+    于是有了卷积和池化，我们就可以构建一些经典的卷积神经网络了，比如说2012年ImageNet竞赛的冠军AlexNet。网络构成从上到下：
+\begin{itemize}
+    \item 卷积-ReLU-池化（重复2次）
+    \item 卷积-ReLU（重复2次）
+    \item 卷积-ReLU-池化
+    \item 全连接-ReLU-Dropout（重复2次）
+    \item 全连接-Softmax
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{经典网络之VGG}
+
+    VGG是2014年ImageNet竞赛的亚军，也是比较经典的卷积神经网络之一，非常Dense。它的网络构成从上到下：
+\begin{itemize}
+    \item 卷积-ReLU（重复2次）-池化
+    \item 卷积-ReLU（重复2次）-池化
+    \item 卷积-ReLU（重复3次）-池化
+    \item 卷积-ReLU（重复3次）-池化
+    \item 卷积-ReLU（重复3次）-池化
+    \item 全连接-ReLU-Dropout（重复2次）
+    \item 全连接-Softmax
+\end{itemize}
+
+（为什么不讲13年的ZF？答：ZF是调参的产物，虽然在当时取得了不错的成绩，但从架构设计的角度来看并没有太多创新，所以我们就不讲了。）
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{经典网络之GoogLeNet}
+
+    GoogLeNet是2014年ImageNet竞赛的冠军，它引入了所谓的“Inception模块”，通过在同一层中使用不同大小的卷积核来提取多尺度特征。网络构成从上到下：
+\begin{itemize}
+    \item 卷积-ReLU-池化
+    \item 卷积-ReLU-池化
+    \item Inception模块（重复3次）-池化
+    \item Inception模块（重复5次）-池化
+    \item Inception模块（重复2次）-全局平均池化
+    \item 全连接-Softmax
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{残差}
+
+    传统神经网络其实还有一个非常重要的东西没讲，这东西就是所谓的\textbf{残差}网络（ResNet）。残差网络的核心思想是引入了所谓的“跳跃连接”（skip connection），使得网络能够直接将输入传递到后面的层，从而缓解了深层网络中的梯度消失问题。
+
+    相较于卷积、池化等操作，残差操作实际上是一个非常年轻的概念（2015年，何凯明等人提出），所作也非常简单（从学习$f$变成学习$f(x) - x$）。但是，它的引入却极大地推动了深度学习的发展，甫一出现就斩获了2015年ImageNet竞赛的冠军（ResNet-152）；我们当今能随便堆叠几十层甚至上百层的神经网络，基本上都是因为残差网络的引入。可以说，无残差，无深度学习。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{感性理解}
+
+    简要地说，如果说传统的神经网络目的是学习$f$，那么残差网络的目的是学习$f(x) - x$，也就是说它试图学习输入和输出之间的差异（残差），而不是直接学习输出。
+
+    那么这个有什么用？
+
+    我们知道，如果堆叠层数很多，那么神经网络不可避免地会陷入梯度消失的问题，导致训练变得非常困难。但引入残差连接之后，我们发现：
+    \begin{itemize}
+        \item 网络理论上是可以学$f(x)=x$的，换句话说这个层被“跳过”。
+        \item 于是，如果这个层学不到有用的特征，那么它至少可以学到一个恒等映射（identity mapping），从而保证了网络的性能不会因为层数增加而下降。
+    \end{itemize}
+    这个特性保证了网络的性能不会因为层数增加而下降。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{为什么？}
+
+    回顾一下多层神经网络的反向传播过程，假设网络$h = f_n \circ f_{n-1} \circ \cdots \circ f_1$，在反向传播过程中，我们需要计算每一层的梯度$\frac{\partial L}{\partial f_i}$，其中$L$是损失函数。
+
+    于是我们可以通过链式法则得到：
+\begin{equation}
+\frac{\partial L}{\partial f_i} = \frac{\partial L}{\partial h} \cdot \prod_{j=i+1}^{n} \frac{\partial f_j}{\partial f_{j-1}}
+\end{equation}
+如果梯度的绝对值一直很小，那么就会出现一个问题：$\prod_{j=i+1}^{n} \frac{\partial f_j}{\partial f_{j-1}} \rightarrow 0$，导致$\frac{\partial L}{\partial f_i} \rightarrow 0$，这就是所谓的梯度消失问题。
+    
+\end{frame}
+
+\begin{frame}
+    \frametitle{为什么？（2）}
+
+    但是引入残差连接之后，如果记$g(x) = f(x) + x$（这里是加号的原因是因为残差连接是将输入$x$直接加到输出上，促使网络学习$f(x) - x$），我们可以得到，对于残差块那一层出现了一个额外的恒等映射：
+\begin{equation}
+\frac{\partial L}{\partial g_i} = \frac{\partial L}{\partial h} \cdot \prod_{j=i+1}^{n} \frac{\partial g_j}{\partial g_{j-1}} + \frac{\partial L}{\partial h} \cdot \prod_{j=i+1}^{n} \frac{\partial g_j}{\partial g_{j-1}} \cdot \frac{\partial g_i}{\partial x}
+\end{equation}
+由于$\frac{\partial g_i}{\partial x} = 1 + \frac{\partial f_i}{\partial x}$，所以即使$\prod_{j=i+1}^{n} \frac{\partial g_j}{\partial g_{j-1}}$很小，仍然有一个恒等映射的梯度可以传递，从而缓解了梯度消失的问题。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{太好了，我要在浅层网络中用残差连接！}
+
+    先别急。
+
+    刚刚说了，残差连接的目的是\textbf{缓解梯度消失问题}。那么问题来了：一个浅层网络，比如说只有两三层，真的会有梯度消失问题吗？答：不太可能。
+
+    也就是说，在浅层网络中引入残差连接，大概率不会降低模型的性能，但好处也不大。
+
+    “杀鸡焉用牛刀”。
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{PyTorch中的残差连接}
+
+在PyTorch中实现残差连接非常简单，通常我们会定义一个残差块（Residual Block），其中包含卷积层和跳跃连接。例如：
+\begin{minted}{python}
+class ResidualBlock(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super(ResidualBlock, self).__init__()
+        self.conv1 = nn.Conv2d(...)
+        self.conv2 = nn.Conv2d(...)
+    def forward(self, x):
+        residual = x  # 保存输入作为残差
+        out = F.relu(self.conv1(x)) # nn.functional
+        out = self.conv2(out)
+        out += residual  # 添加残差连接
+        return F.relu(out)
+\end{minted}    
+
+\end{frame}
+
+\begin{frame}[fragile]
+    \frametitle{残差块：包装好的残差连接}
+    上面我们定义了一个残差块（Residual Block），它包含了两个卷积层和一个跳跃连接。这个残差块可以被看作是一个包装好的残差连接，于是可以用这个“残差块”来构建更深的网络，例如ResNet：
+\begin{minted}{python}
+class ResNet(nn.Module):
+    def __init__(self):
+        super(ResNet, self).__init__()
+        self.block1 = ResidualBlock(3, 64)
+        self.block2 = ResidualBlock(64, 128)
+        # 其他层的定义...
+\end{minted}
+残差块也有两种，分别是所谓的“基本残差块”（Basic Residual Block）和“瓶颈残差块”（Bottleneck Residual Block）。前者包含两个卷积层，后者包含三个卷积层（其中第一个和第三个卷积层是1x1卷积，用于降低和恢复维度）
+\end{frame}
+
+\begin{frame}
+    \frametitle{经典网络之ResNet}
+
+    ResNet不是一个网络，而是一类网络的统称。首次亮相的ResNet就是ResNet-152，顾名思义就是有152层的残差网络；后来又出现了ResNet-50、ResNet-101等不同层数的变体。
+
+    较常用的ResNet-50的网络构成是显著“分块”的，从上到下：
+\begin{itemize}
+    \item Stage 0：卷积-BN-ReLU-池化
+    \item Stage 1：残差块（重复3次）
+    \item Stage 2：残差块（重复4次）
+    \item Stage 3：残差块（重复6次）
+    \item Stage 4：残差块（重复3次）
+    \item 全局平均池化-全连接-Softmax
+\end{itemize}
 \end{frame}
 
 \end{document}

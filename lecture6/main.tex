@@ -1,0 +1,236 @@
+\documentclass{ctexbeamer}
+
+\usepackage{minted}
+\usepackage{graphicx}
+\usepackage{svg}
+% \usepackage[english]{babel}
+\usepackage[bibstyle=alphabetic, backend=biber, sorting=ynt]{biblatex}
+\usepackage{amssymb, amsmath, amsfonts}
+
+\addbibresource{references.bib}
+
+\usefonttheme{serif}
+\usetheme{CambridgeUS}
+
+\setlength{\parskip}{0.5em}
+
+\setminted{
+    baselinestretch=1.0,       % 行间距
+    frame=single,           % 边框样式
+    framesep=2mm,              % 边框间距
+    rulecolor=\color{black},   % 边框颜色
+    breaklines=true,           % 自动换行
+    breakanywhere=false,       % 不在任意位置断行
+    showspaces=false,          % 不显示空格
+    showtabs=false,            % 不显示制表符
+    tabsize=4,                 % 制表符大小
+}
+
+\title{第六次上机课}
+\author{臧炫懿}
+\date{\today}
+
+\begin{document}
+
+\frame{\maketitle}
+
+\begin{frame}
+    \frametitle{AI Infra}
+
+    我们从AI基础这门课正式上课到现在，讲了很多“上层”的内容：分类器、卷积、池化、残差、梯度下降、归一化、正则化等。但我们很少关注到一些“下层”的问题，例如：
+    \begin{itemize}
+        \item 模型是怎么在计算机上跑起来的？
+        \item 为什么有时候模型训练快、有时候训练慢、为什么有时候模型训练不起来？
+    \end{itemize}
+
+    为了解答以上这些问题以及类似的问题，我们需要了解AI Infra（AI基础设施）。AI Infra是指支撑AI模型训练和推理的底层系统和工具，包括但不限于：
+    \begin{description}
+        \item[硬件] CPU、GPU、TPU等计算设备；存储设备等
+        \item[软件] 深度学习框架、分布式训练工具、模型压缩工具等
+        \item[数据] 数据存储、数据预处理、数据增强等
+    \end{description}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{AI训练的底层本质}
+
+    输入一堆数据、一个模型（没有训练好的模型），输出一些模型参数（训练好的模型），过程是老生常谈的：前向传播、计算损失、反向传播、更新参数，如此反复循环。
+
+    在这些过程中，实际上是计算机对一个个张量进行操作。我们把张量（模型参数、输入数据、输出数据等）从主存（DRAM）中搬出来，搬到不同的计算设备上，由这些计算设备进行各种各样的张量运算（如矩阵乘法、卷积、激活函数等）；算完以后（模型训练完毕），我们把这些张量搬回主存中，保存成模型参数文件（如checkpoint、pt、bin等）。
+    
+    \alert{因此，AI训练的底层本质就是：\textbf{搬运和计算张量}。}
+
+    所以模型训练的快慢，自然就和上述的搬运和计算张量的效率有关了。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{影响AI训练效率的因素}
+
+    既然搬运和计算张量是AI训练的底层本质，那么影响AI训练效率的因素也就和搬运和计算张量的效率有关了。具体来说，影响AI训练效率的因素主要有以下几个方面：
+    \begin{description}
+        \item[计算] 计算设备的计算能力（如FLOPS）、计算设备的利用率（如GPU利用率）、计算设备的并行度（如多GPU训练）
+        \item[搬运] 数据从主存搬到计算设备的速度，计算设备之间搬运数据的速度，计算设备把结果搬回主存的速度等
+        \item[软件] 深度学习框架的优化程度、分布式训练工具的效率、模型压缩工具的效果等
+    \end{description}    
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{最大瓶颈：计算}
+
+    训练模型是典型的\textbf{计算密集型}任务，计算设备的计算能力和利用率是影响模型训练效率的最大瓶颈。
+
+    CPU就是典型的计算设备，具体原理不是这节课的内容。我们知道，CPU的通用计算能力非常强大，能够处理各种各样的计算任务；只是，一般情况下，CPU 核心数少、控制逻辑复杂，不适合大规模细粒度并行（如矩阵乘法）。
+    
+    但是，对于张量乘积这种实际上是由大量简单运算组成的任务，我们肯定是希望能够并行计算的，以提高计算效率。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{GPU的启示}
+
+    实际上，类似的瓶颈在先前就遇到过了：以前还没有显卡的时候，显示器上的图像都是由CPU计算出来的，结果就是显示器上的图像更新非常慢，甚至有时候会卡顿。人们发现，计算图像这种事情并\textbf{不是什么难事，但很烦（因为需要执行大量的简单运算）}。那能不能设计一个设备，使得它非常并行，且计算能力不用太强大，只需要能够高速地执行大量的简单运算就行了呢？答案自然是有的，这就是GPU（Graphics Processing Unit，图形处理器）的来头。
+
+    参考历史，我们发现现在遇到的问题和以前遇到的问题是非常类似的：我们需要一个设备，能够高速地执行大量的简单运算（如矩阵乘法、卷积等），以提高模型训练的效率。那么为什么不把GPU直接搬过来用呢？答案自然是可以的。
+
+    实际上这个思路是非常好的：\textbf{用通用性换专用性}。后来人们觉得GPU还不够优化，于是又设计了TPU，这个只能用来跑AI的专用设备，效率在特定任务上更高了。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{GPU的构成}
+
+    现在拿到一个显卡，会发现这玩意很重，像一个大板砖。因为“显卡”和“GPU”是两个不同的概念，GPU只是显卡上的一个芯片；显卡上还有很多其他的组件，例如显存（VRAM）、散热器、风扇、电源接口等。这些组件都是为了支持GPU的计算而设计的。
+
+    对于计算而言，GPU在显卡上充当了CPU的功能，负责执行计算任务；显存则充当了内存的功能，负责临时存储数据和模型参数。一般而言，GPU的运算能力用FLOPS（每秒浮点运算次数）来衡量，显存的容量用GB来衡量。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{训练过程}
+
+    在训练模型的时候，通常是把整个模型整体搬进显存，随后将数据分批地搬进显存进行计算。GPU的计算能力和显存的容量都会直接影响到训练效率和能够训练的模型大小。
+    \begin{itemize}
+        \item GPU越强，训练效率越高。\alert{在大多数情况下，这个是最大的瓶颈。}
+        \item 显存越大，能够训练的模型越大，或一次能够处理的batch越大，训练效率也越高。有时候显存不够，也会爆OOM，导致训练无法进行。
+        \item 一般情况下，batch越大，训练效率越高（因为可以更好地利用GPU的并行计算能力），但也会增加显存的需求。当batch size达到GPU的计算能力的上限时（即核心UTL拉满），继续增加batch size也不会再提高训练效率了（即使显存没满）。
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{显存不够的解决手段}
+
+    GeForce RTX 4080的显存有16GB，看似很大。但在去年发布的DeepSeek-R1模型，参数量有671B；假如该模型用的是FP8来存储数据，模型参数就需要671GB的显存来存储，远远超过了单个GPU的显存容量。实际比这个还要更大。
+
+    降低数据精度（如使用FP16、BF16、INT8等），或者使用模型压缩技术（如剪枝、量化、蒸馏等）来减少模型参数的数量等手段，能降低对显存的需求。但这些也会降低模型的性能和精度，所以并不是一个完美的解决方案。
+
+    另一种手段就是降低batch size、多次存档（gradient checkpointing），来减少每次训练需要的显存。但这大大降低了训练效率，是一种时间换空间的做法。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{堆卡}
+
+    为了解决上述问题，人们把多个卡凑在一起，形成一个GPU集群，通过分布式训练的方式来训练模型。分布式训练有两种形式：
+    \begin{description}
+        \item[数据并行] 每个GPU存储整个模型的副本，但每个GPU只处理输入数据的一部分，相当于增大了batch size，从而提高了训练效率。当然这个需要显存能容纳整个模型的副本。
+        \item[模型并行] 每个GPU只存储模型的一部分参数，输入数据在不同的GPU之间传递，每个GPU负责计算自己存储的那部分参数的梯度，显著缓解了显存不足的问题。
+    \end{description}
+
+    但是，分布式训练又引入了新的问题：GPU之间总是需要频繁地交换数据（如梯度、参数等），这被叫做“同步”（sync）。这就引入了新的瓶颈：GPU之间的通信效率，也直接影响了多卡训练的效率。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{搬运效率}
+
+    刚刚提及了GPU之间的通信效率是多卡训练的一个重要瓶颈。除此之外，数据从主存搬到GPU的效率也是一个重要因素。
+
+    实际上，GPU在模型训练的过程中（尤其是小模型），大部分时间都是在等待数据搬运的过程中度过的，而不是在进行计算的过程中度过的。这就是为什么搬运效率也是影响AI训练效率的重要因素。影响搬运效率的因素主要有以下几个方面：
+    \begin{itemize}
+        \item 硬盘、主存、显存之间的数据搬运效率
+        \item dataloader
+        \item batch size（减少搬运次数，降低了搬运的相对开销）
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{《体系》（mini）}
+
+    这里我们简单介绍一下计算机体系结构方面的知识，为接下来的分析做铺垫。
+
+    \begin{figure}
+        \centering
+        \includesvg[width=0.8\textwidth]{new}
+    \end{figure}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{通信机理与效率对比}
+    \begin{itemize}
+        \item CPU访问主存，走内存总线，带宽极高。
+        \item GPU访问显存，走显存总线，带宽更高。
+        \item CPU访问GPU、显存，走PCIe总线，速度比较慢。
+        \item CPU访问外存（NVMe）也通过PCIe总线进行，速度和上述访问GPU、显存的速度差不多，但延迟更高。
+        \item 通常情况下，GPU不能主动发起对主存的访问，而是需要CPU来把数据搬到GPU上。
+    \end{itemize}
+
+    所以：当模型很小的时候，把它直接丢到CPU和主存上训练反而是快的。因为GPU的计算能力不会得到充分利用，且数据搬运的效率又比较低。换句话说，这时候从一个计算密集型任务变成了一个IO密集型任务了。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{软件层}
+
+    除了上述硬件问题（计算、搬运）之外，软件层的优化也是非常重要的。这包括：
+
+    \begin{description}
+        \item[模型] 模型结构？参数量？计算复杂度？
+        \item[驱动] GPU的驱动程序也会影响训练效率，因为它负责管理资源、调度计算任务。这也是为什么GPU厂商会不断更新驱动程序来提升性能的原因之一，也是我们推荐大家去装cuDNN的原因。
+        \item[框架] 不同的框架（如TensorFlow、PyTorch）在底层实现上可能有不同的优化策略，这也会影响训练效率。有时候自己手搓的层，效率需要经过严格的测试和优化。
+        \item[分布式训练工具] 如Horovod、DeepSpeed等，实际上它们做的工作就是尽量优化同步开销，减少GPU之间的通信时间，从而提高多卡训练的效率。其具体实现也自然是非常复杂且重要的。
+    \end{description}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{小结}
+
+    所以，一个模型训练的快慢，可能会与以下具体的因素有关：
+    \begin{itemize}
+        \item 计算设备的计算能力和利用率
+        \item 数据搬运的效率、多卡之间的通信效率
+        \item 模型本身的结构和参数量
+        \item 驱动程序、框架、分布式训练工具等软件层的优化程度
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{排错思路}
+
+    所以在发现模型训练效率不高的时候，我们就可以从上述几个方面去排查问题：
+    \begin{itemize}
+        \item 有没有把模型和数据搬到\textbf{正确的}GPU上（常见的是电脑有集显、有独显，结果把模型搬到集显上了）？有没有频繁地搬进搬出GPU（例如反复打印）？
+        \item 超参数调得是不是有问题（batch size、lr等）？模型结构设计得是不是有问题（例如参数量过大）？
+        \item 多卡的时候，GPU之间的通信效率是不是有问题？有没有一些情况仅“同步”即可做到，却把数据搬来搬去（例如把数据搬到GPU上进行计算，计算完了又搬回主存中进行同步）？
+        \item 驱动、框架、分布式训练工具等软件层有没有更新和优化？有没有使用一些高效的库？自己手搓的层（如自定义的卷积层）有没有充分优化？有没有使用一些高效的算子（如FlashAttention）？
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{结论}
+
+    怎样提高模型训练的效率，是一个很复杂的课题。
+
+    经过上述的分析，同学们也应当建立以下的认知：模型训练，是一个系统问题，不只是模型问题或硬件的问题，而是模型、硬件、软件等多个方面的综合问题。我们需要从多个方面去\textbf{具体情况具体分析}，找出训练效率的瓶颈所在，并针对性地进行优化，才能真正提高模型训练的效率。
+    
+\end{frame}
+
+\end{document}
