@@ -1,7 +1,8 @@
-\documentclass{ctexbeamer}
+\documentclass[fontset=none]{ctexbeamer}
 
 \usepackage{minted}
 \usepackage{graphicx}
+\usepackage{fontspec}
 % \usepackage[english]{babel}
 \usepackage[bibstyle=alphabetic, backend=biber, sorting=ynt]{biblatex}
 \usepackage{amssymb, amsmath, amsfonts}
@@ -10,6 +11,13 @@
 
 \usefonttheme{serif}
 \usetheme{CambridgeUS}
+
+\setCJKmainfont{Source Han Serif CN}  % 或其他中文字体
+\setCJKsansfont{Source Han Sans CN}
+\setCJKmonofont{Source Han Sans CN}
+\setmainfont{Source Serif Pro}
+\setsansfont{Source Sans Pro}
+\setmonofont{Source Code Pro}
 
 \setlength{\parskip}{0.5em}
 
