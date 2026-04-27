@@ -1,0 +1,730 @@
+\documentclass[aspectratio=1610]{ctexbeamer}
+
+\usepackage{minted}
+\usepackage{graphicx}
+\usepackage{fontspec}
+\usepackage{amssymb, amsmath, amsfonts}
+
+\usefonttheme{serif}
+\usetheme{Hannover}
+
+% \setmainfont{Noto Serif CJK SC}
+% \setsansfont{Noto Sans CJK SC}[Scale=MatchLowercase]
+% \setmonofont{Noto Sans Mono CJK SC}[Scale=MatchLowercase]
+% \setCJKmainfont[ItalicFont = FZKai-Z03]{Noto Serif CJK SC}
+% \setCJKsansfont[ItalicFont = *]{Noto Sans CJK SC}
+% \setCJKmonofont[ItalicFont = *]{Noto Sans Mono CJK SC}
+
+\title{人工智能基础 期中复习课}
+\author{臧炫懿}
+\date{2026年4月}
+
+\begin{document}
+\frame{\titlepage}
+\begin{frame}
+    \frametitle{目录}
+    \tableofcontents
+\end{frame}
+
+\section{历史}
+
+\begin{frame}
+    \frametitle{人工智能的历史回顾}
+
+    三起三落：
+    \begin{itemize}
+        \item 第一次热度：1956年达特茅斯会议，人工智能正式诞生，充满乐观预期。此时的人工智能范式百花齐放。
+        \item 第一次寒冬：1970年代，因为“单层感知机无法解决异或问题”、硬件严重不足、早期机翻项目的失败等原因，人工智能发展陷入低谷。
+        \item 第二次热度：1980年代，专家系统兴起，人工智能再次受到关注。此时的人工智能范式以符号主义为主。
+        \item 第二次寒冬：1990年代，专家系统的局限性暴露，日本“五代机”失败，人工智能再次陷入低谷。
+        \item 第三次热度：2000年代，深度学习的突破，人工智能迎来新的繁荣。此时的人工智能范式以数据驱动的机器学习为主，主要是连接主义的深度神经网络。
+    \end{itemize}
+
+\end{frame}
+
+\section{数学}
+\subsection{概率论部分}
+
+\begin{frame}
+    \frametitle{先验概率和后验概率}
+
+    条件概率：事件A在事件B发生的条件下发生的概率，记为$P(A \mid B) = \frac{P(A \cap B)}{P(B)}$。
+
+    \vspace{1em}
+    \pause
+
+    若设事件A为某个假设，事件B为观察到的数据，则：
+    \begin{description}
+        \item[先验概率] 在观察到数据之前对某个事件发生的概率的估计：$P(A)$。
+        \item[后验概率] 在观察到数据之后对某个事件发生的概率的更新: $P(A \mid B)$。
+    \end{description}
+
+    \vspace{1em}
+    \pause
+
+    先验概率和后验概率之间的关系由贝叶斯定理给出：
+    \begin{equation}
+P(A \mid B) = \frac{P(B \mid A)P(A)}{P(B)} = \frac{P(B \mid A)P(A)}{P(B \mid A)P(A) + P(B \mid \overline{A})P(\overline{A})} \tag{贝叶斯定理的二元形式}
+    \end{equation}
+    或更一般的形式：
+    \begin{equation}
+P(A_i \mid B) = \frac{P(B \mid A_i)P(A_i)}{\sum_j P(B \mid A_j)P(A_j)} \tag{贝叶斯定理}
+    \end{equation}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{随机变量、PDF和CDF}
+
+    随机变量指的是一个函数，它将样本空间中的每个结果映射到一个实数。随机变量可以是离散的（取有限或可数无限个值）或连续的（取不可数无限个值）。
+
+    \vspace{1em}
+    \pause
+
+    概率质量函数（PMF）适用于离散随机变量，定义为$P(X=x)$，表示随机变量X取值为x的概率，必然满足归一化条件$\sum_x P(X=x) = 1$。有时也被称为概率密度函数。
+
+    概率密度函数（PDF）适用于连续随机变量，定义为$f(x)$，满足$P(a \leq X \leq b) = \int_a^b f(x) dx$，必然满足归一化条件$\int_{-\infty}^{\infty} f(x) dx = 1$。
+
+    \vspace{1em}
+    \pause
+
+    累积分布函数（分布函数，CDF）的定义为$F(x) = P(X \leq x)$，对于离散随机变量，CDF可以通过PMF求得：$F(x) = \sum_{t \leq x} P(X=t)$；对于连续随机变量，CDF可以通过PDF求得：$F(x) = \int_{-\infty}^x f(t) dt$。根据定义，容易得知CDF在$-\infty$处为0，在$+\infty$处为1，并且CDF是单调非减的。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{独立同分布的随机变量}
+
+    两个随机变量X和Y是独立的，如果对于所有的x和y，满足$P(X=x, Y=y) = P(X=x)P(Y=y)$（离散情况）或$f_{X,Y}(x,y) = f_X(x)f_Y(y)$（连续情况）。独立性意味着一个随机变量的取值不会影响另一个随机变量的取值。
+
+    这个定义在下文中非常重要：在几乎所有的机器学习算法中，我们都假设数据是独立同分布的（i.i.d.）。这意味着每个数据点都是从同一个分布中独立采样的，这使得我们能够使用统计方法来分析和建模数据。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{期望、方差和协方差}
+
+    \begin{description}
+        \item[期望] 随机变量的平均值，定义为$E[X] = \sum_x x P(X=x)$（离散情况）或$E[X] = \int_{-\infty}^{\infty} x f(x) dx$（连续情况）。期望反映了随机变量的中心位置。
+        \item[方差] 随机变量的离散程度，定义为$Var(X) = E[(X - E[X])^2]$。方差越大，随机变量的取值越分散。
+        \item[协方差] 两个随机变量之间的线性关系，定义为$Cov(X,Y) = E[(X - E[X])(Y - E[Y])]$。协方差为正表示两个随机变量倾向于同时增加或减少，为负表示一个随机变量增加时另一个倾向于减少，为零表示两个随机变量之间没有线性关系。
+    \end{description}
+
+    \vspace{1em}
+    \pause
+
+    协方差矩阵是一个方阵，其中第i行第j列的元素表示第i个随机变量和第j个随机变量之间的协方差。协方差矩阵是对称的，并且是半正定的。
+
+\end{frame}
+
+\subsection{统计学部分}
+
+\begin{frame}
+    \frametitle{对随机变量的估计}
+
+    \begin{description}
+        \item[点估计] 使用单个数值来估计一个参数，例如使用样本均值来估计总体均值。
+        \item[区间估计] 使用一个区间来估计一个参数，例如使用置信区间来估计总体均值的范围。
+    \end{description}
+
+    在处理多个参数时，有以下几个统计概念较为重要：
+    \begin{description}
+        \item[似然函数] 给定参数值，数据出现的概率。特别的，当数据独立同分布时，似然函数可以写成所有数据点的概率的乘积。由于每一个因子都是小于1的数，因此乘积会变得非常小，在计算机上容易导致浮点数下溢。为了解决这个问题，我们通常使用对数似然函数，即似然函数的自然对数，这样就将乘积转化为求和，避免了下溢问题。在实际运算中也可以如此简化计算。
+        \item[最大似然估计] 选择使得似然函数最大的参数值作为估计值。也被称作“最概然估计”，是频率学派中最常用的参数估计方法。
+        \item[贝叶斯估计] 结合先验概率和似然函数，使用贝叶斯定理计算后验概率，并选择使得后验概率最大的参数值作为估计值。也被称作“最大后验估计”，是贝叶斯学派中最常用的参数估计方法。
+    \end{description}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{练习}
+
+    新冠疫情期间我们经历了多次核酸检测。假设某核酸检测的的敏感度（一个携带病毒的人，检测结果为阳性的概率）为0.95，特异度（一个不携带病毒的人，检测结果为阴性的概率）为0.98。假设在某个社区中，感染率（携带病毒的人的比例）为0.01。如果某个人的检测结果为阳性，他确实感染了病毒的概率是多少？对此人进行复检，第二次检测结果仍然为阳性，那么他确实感染了病毒的概率又是多少？
+    
+    \vspace{1em}
+    \pause
+
+    设事件A为“某人感染了病毒”，事件B为“某人检测结果为阳性”，则我们要求的是$P(A \mid B)$。根据贝叶斯定理，带入数据计算可得：
+\begin{equation}
+P(A \mid B) = \frac{0.95 \times 0.01}{0.95 \times 0.01 + (1 - 0.98) \times (1 - 0.01)} \approx 0.32
+\end{equation}
+    复检计算方法类似，只是将先验概率更新为第一次检测的后验概率，即$P(A) = 0.32$，再次带入贝叶斯定理计算，可得概率约为0.96。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{练习}
+
+    为了简化计算，设某核酸检测的敏感度为0.95，特异性为1.00。
+    假设在某个社区中，感染率为0.1。每一个人的检测结果都是独立的。某10人混管的检测结果为阳性，设该混管中感染者数量为$X$。
+
+    计算：
+    \begin{enumerate}
+        \item 写出似然函数。做MLE估计。
+        \item 写出后验概率，做MAP估计。（假设$X$遵从二项分布）
+    \end{enumerate}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{练习提示}
+
+    这10个人不可能全是健康人。因此，对于$X=0$的情况，似然函数为0（即不可能发生）。
+    
+    对于$X>0$的情况：每个感染者漏检的概率都是0.05，每个健康人误检的概率都是0。因此，似然函数为$P(B \mid X) = 1 - 0.05^X$。
+
+    MLE估计：倾向于选择使得似然函数最大的$X$值。由于似然函数是单调递增的，因此MLE估计为$X=10$。
+
+    MAP估计：需要结合先验概率。先验概率为$P(X) = \binom{10}{X} 0.1^X 0.9^{10-X}$。后验概率为$P(X \mid B) \propto P(B \mid X) P(X)$，需要计算每个$X$值的后验概率，并选择使得后验概率最大的$X$值作为MAP估计。挨个计算，发现$X=1$的后验概率最大，因此MAP估计为$X=1$。
+
+    \vspace{1em}
+
+    这说明MLE估计在某些情况下很不合理，因为它没有考虑先验知识，而MAP估计则能够结合先验知识，得到更合理的结果。但MAP估计的缺点在于它依赖于先验分布的选择，具有一定的主观性，可能产生偏差。
+    
+\end{frame}
+
+\begin{frame}
+    \frametitle{练习：连续情况下的MLE}
+
+    设某连续随机变量$X$的概率密度函数为$f(x) = \frac{1}{\theta} e^{-x/\theta}$，其中$\theta > 0$是未知参数。
+    
+    \begin{enumerate}
+        \item 证明：该PDF是一个合法的概率密度函数。
+        \item 现在有一个样本数据集$\{x_1, x_2, \ldots, x_n\}$，其中每个$x_i$都是从上述分布中独立采样的。写出似然函数，并求出$\theta$的MLE估计。
+    \end{enumerate}
+
+    \vspace{1em}
+    \pause
+
+    第一问需要验证非负性和归一化（0延拓）。应当非常容易验证。
+
+    对于第二问，直接进行计算，似然函数为：
+\begin{equation}
+L(\theta) = \prod_{i=1}^n f(x_i) = \prod_{i=1}^n \frac{1}{\theta} e^{-x_i/\theta} = \frac{1}{\theta^n} e^{-\sum_{i=1}^n x_i / \theta}
+\end{equation}
+    直接求导有困难，改为求对数似然函数：
+\begin{equation}
+\ell(\theta) = \log L(\theta) = -n \log \theta - \frac{1}{\theta} \sum_{i=1}^n x_i
+\end{equation}
+    对$\theta$求导并令其为0，得到：
+\begin{equation}\frac{d\ell}{d\theta} = -\frac{n}{\theta} + \frac{1}{\theta^2} \sum_{i=1}^n x_i = 0 \implies \hat{\theta} = \frac{1}{n} \sum_{i=1}^n x_i
+\end{equation}
+
+\end{frame}
+
+\subsection{信息论}
+
+\begin{frame}
+    \frametitle{衡量一件事的信息量}
+
+    朴素的认知中，“信息量”应当具有以下特征：
+    \begin{itemize}
+        \item 经常发生的事件应该携带较少的信息量，而不常发生的事件应该携带较多的信息量。
+        \item 事件A和事件B是独立的，那么同时发生A和B应该携带的信息量等于发生A携带的信息量加上发生B携带的信息量。
+    \end{itemize}
+
+    所以定义一个随机事件的信息量为$I(x) = -\log P(x)$，满足上述特征。该信息量被称作“自信息”（self-information）。
+
+    信息熵指的则是整个概率分布的平均自信息。\[H(X) = -\int f(x) \log f(x) dx\]
+    信息熵反映了随机变量的不确定性程度，熵越大，不确定性越大。
+    
+\end{frame}
+
+\begin{frame}
+    \frametitle{KL散度和JS散度}
+
+    KL散度用来衡量两个概率分布之间的差异。
+    \[D_{KL}(P \parallel Q) = \int f_P(x) \log \frac{f_P(x)}{f_Q(x)} dx\]
+    
+    KL散度具有非负性，并且当且仅当$P=Q$时，KL散度为0。KL散度不对称，因此它不是一个真正的距离度量。这种不对称性有好处：如果希望优先保障真实情况高概率的事件尽量被模型覆盖，那么就应该使用$D_{KL}(P \parallel Q)$；如果希望优先保障真实情况低概率的事件尽量不被模型覆盖，那么就应该使用$D_{KL}(Q \parallel P)$。
+    
+    \vspace{1em}
+
+    为了克服KL散度的非对称性问题，我们可以使用JS散度，定义为P到Q的KL散度和Q到P的KL散度的平均值。该散度具有对称性，并且总是介于0和1之间。JS散度在生成对抗网络（GAN）中被用来衡量生成分布与数据分布之间的差异。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{交叉熵}
+
+    交叉熵是KL散度加上一个香农熵。\[H(P, Q) = H(P) + D_{KL}(P \parallel Q)\]
+    
+    交叉熵衡量了使用分布Q来编码分布P所需的平均比特数。交叉熵在机器学习中有广泛的应用，例如在分类问题中用作损失函数，衡量模型预测分布与真实分布之间的差异。
+
+\end{frame}
+
+\section{神经网络}
+
+\subsection{机器学习基础}
+
+\begin{frame}
+    \frametitle{不同的机器学习范式}
+
+    \textbf{机器学习的本质是学习一个映射}：该映射从输入空间（特征空间）到输出空间（标签空间）。也就是说，在$y = f(x)$ 中，机器学习的目标是学习$f$这个函数。
+
+    \vspace{1em}
+    不同机器学习范式的根本区别在于我们提供给机器什么样的数据：
+    \begin{description}
+        \item[监督学习] 给机器$x$和对应的标签$y$。经典的监督学习任务包括分类（标签是离散的）和回归（标签是连续的）。分类问题包括逻辑回归、支持向量机、决策树等，回归问题包括线性回归、多项式回归等。
+        \item[半监督学习] 给机器$x$和一部分对应的标签$y$，另一部分没有标签。
+        \item[无监督学习] 只给机器$x$，没有对应的标签$y$。无监督学习的经典任务包括聚类（将数据分成不同的组）和降维（将高维数据映射到低维空间）。特别的，主成分分析（PCA）是一种常用的线性降维方法。
+    \end{description}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{损失函数}
+
+    \textbf{损失函数是衡量模型预测与真实标签之间差距的函数}，可以简单地理解为“模型有多坏”。我们的目标是尽可能地降低损失函数的数值。
+
+    \vspace{1em}
+
+    常见损失函数：
+    \begin{description}
+        \item[均方误差] $L(y, \hat{y}) = \frac{1}{n} \sum_{i=1}^n (y_i - \hat{y}_i)^2$，适用于回归问题。
+        \item[交叉熵损失] $L(y, \hat{y}) = -\frac{1}{n} \sum_{i=1}^n [y_i \log \hat{y}_i + (1 - y_i) \log (1 - \hat{y}_i)]$，适用于二分类问题。
+        \item[多分类交叉熵损失] $L(y, \hat{y}) = -\frac{1}{n} \sum_{i=1}^n \sum_{j=1}^k y_{ij} \log \hat{y}_{ij}$，适用于多分类问题，其中$k$是类别数，$y_{ij}$是样本$i$的第$j$个类别的真实标签（通常是one-hot编码），$\hat{y}_{ij}$是模型预测的第$j$个类别的概率。
+    \end{description}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{优化算法}
+
+    直接求解$\nabla_\theta L(\theta) = 0$通常极端困难，因此我们需要数值优化算法来迭代地更新参数$\theta$，以逐步降低损失函数的数值。
+
+    常见数值优化算法：
+
+    \begin{equation}
+\nabla_\theta L(\theta_{n+1}) = \nabla_\theta L(\theta_n) - \eta \nabla_\theta L(\theta_n) \tag{梯度下降}
+    \end{equation}
+
+    \begin{equation}
+\nabla_\theta L(\theta_{n+1}) = \nabla_\theta L(\theta_n) - \frac{\nabla_\theta L(\theta_n)}{\nabla^2_\theta L(\theta_n)} \tag{牛顿法}
+    \end{equation}
+
+    梯度下降是一阶优化算法（只使用梯度信息），牛顿法是二阶优化算法（使用梯度和Hessian矩阵）。牛顿法通常收敛更快，但计算Hessian矩阵的成本很高，因此在大规模机器学习中不常用。
+    其中，$\eta$是学习率，一般是一个小的正数，控制每次更新的步长大小。显而易见的，学习率过大可能导致发散，过小可能导致收敛过慢。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{前向传播和反向传播}
+
+    于是我们得到了一个机器学习的基本步骤。设神经网络$h(x; \theta)$，损失函数$L(y, h(x; \theta))$。
+    \begin{enumerate}
+        \item 输入一批数据，计算模型的输出$h(x; \theta)$。
+        \item 计算损失函数的数值$L(y, h(x; \theta))$。
+        \item 计算损失函数关于参数$\theta$的梯度$\nabla_\theta L(y, h(x; \theta))$。
+        \item 使用优化算法更新参数$\theta$，并把更新后的参数带回模型中去。
+        \item 重复上述步骤，直到满足某个停止条件（例如损失函数的数值足够小，或者达到最大迭代次数）。
+    \end{enumerate}
+
+    一般把第1步称为前向传播（forward propagation），第3步称为反向传播（backward propagation）。前向传播是从输入到输出的计算过程，反向传播是从输出到输入的梯度计算过程。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{模型的性能评估}
+    
+    在模型训练结束后，我们需要评估模型的性能，以判断模型是否能够很好地拟合数据，并且具有良好的泛化能力。评估的过程通常包括以下几个步骤：
+    \begin{enumerate}
+        \item 划分数据集：将数据集划分为训练集、验证集和测试集。训练集用于模型参数调整，验证集用于训练任务超参数调整，测试集用于最终的性能评估。原则上，永远不能将测试集用于模型的训练。
+        \item 训练完毕后，进行模型评估：禁用模型中的正则化、归一化等训练时特有的机制；停止梯度计算。然后将测试集输入模型，得到模型的预测结果，并计算评估指标。
+    \end{enumerate}
+
+    几乎所有模型自带一个评估指标：损失函数数值，该数值越小越好。但在实际应用中，我们需要使用更具体的评估指标。
+    \begin{itemize}
+        \item 分类问题：准确率（真阳+真阴/总数）、精确率（真阳/真阳+假阳）、召回率（真阳/真阳+假阴）、F1分数（精确率和召回率的调和平均数）等。
+        \item 回归问题：均方误差（MSE）、平均绝对误差（MAE）、R²分数（决定系数）等。
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{线性层、多层感知机和非线性激活函数}
+
+    线性层的定义是$y = Wx + b$，其中$W$是权重矩阵，$b$是偏置向量。单一的线性层被称作\textbf{线性分类器}，只能拟合线性可分的数据。
+
+    \textbf{简单地堆叠多个线性层无法增加模型的表达能力}，这是因为多个线性变换的组合仍然是一个线性变换。我们需要在线性层之间增加非线性的激活层来\textbf{引入非线性}，从而使得模型能够拟合更复杂的函数。    
+    
+    \vspace{1em}
+
+    常见激活函数：
+    \begin{description}
+        \item[Sigmoid] $f(x) = \frac{1}{1 + e^{-x}}$
+        \item[Tanh] $f(x) = \frac{e^x - e^{-x}}{e^x + e^{-x}}$
+        \item[ReLU] $f(x) = \max(0, x)$
+        \item[Leaky ReLU] $f(x) = \max(\alpha x, x)$，其中$\alpha$是一个小的正数，例如0.01。 
+    \end{description}
+
+    \vspace{1em}
+    将多个线性层和激活函数层组合在一起，就构成了一个\textbf{多层感知机（MLP）}。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{多层神经网络的链式法则}
+
+    所以一个神经网络如果写成复合函数，可以表示为$h(x) = f_n \circ f_{n-1} \circ \ldots \circ f_1(x)$，其中每个$f_i$可以是一个线性层、一个激活函数层，或者其他类型的层。对于这样的复合函数，我们可以使用链式法则来计算损失函数关于参数的梯度。
+
+    设损失函数为$L(y, h(x))$，我们需要计算$\nabla_\theta L(y, h(x))$。根据链式法则，我们可以将梯度分解为多个部分的乘积：
+\begin{equation}
+\nabla_\theta L(y, h(x)) = \nabla_{f_n} L(y, f_n) \cdot \nabla_{f_{n-1}} f_n \cdot \ldots \cdot \nabla_{f_1} f_2 \cdot \nabla_\theta f_1
+\end{equation}
+而这些梯度中的每一个都可以通过前向传播过程中计算得到的中间结果来计算，从而实现高效的反向传播算法。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{练习}
+
+    现有一个二层的神经网络，输入层有2个神经元，输出层有1个神经元，激活函数为ReLU。网络的输出可以表示为：
+    \[ h(x) = \text{ReLU}(w\mathbf{x} + b) \]
+其中$\mathbf{x}\in \mathbb{R}^2$是输入特征向量，$w \in \mathbb{R}^2$是权重向量，$b \in \mathbb{R}$是偏置项。初始化权重为$w = [1, 1]$，偏置为$b = 0$。损失函数$\ell(w, b) = \frac{1}{2}(y - h(x))^2$。学习率$\eta = 0.01$。
+
+给你一个数据点$(\mathbf{x}, y) = ([1, 1], 1)$。在使用该数据进行一次反向传播后，$w$的更新值为多少？
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{练习提示}
+
+    \begin{equation}
+h(x) = \text{ReLU}(w\mathbf{x} + b) = \text{ReLU}([1, 1] \cdot [1, 1] + 0) = \text{ReLU}(2) = 2
+\end{equation}
+\begin{equation}
+\ell(w, b) = \frac{1}{2}(y - h(x))^2 = \frac{1}{2}(1 - 2)^2 = \frac{1}{2}
+\end{equation}
+\begin{equation}
+\frac{\partial \ell}{\partial h} = -(y - h(x)) = -(1 - 2) = 1
+\end{equation}
+\begin{equation}
+\frac{\partial h}{\partial w} = \frac{\partial \text{ReLU}(z)}{\partial z} \cdot \frac{\partial z}{\partial w} = 1 \cdot \mathbf{x} = [1, 1]
+\end{equation}
+\begin{equation}
+\frac{\partial \ell}{\partial w} = \frac{\partial \ell}{\partial h} \cdot \frac{\partial h}{\partial w} = 1 \cdot [1, 1] = [1, 1]
+\end{equation}
+\begin{equation}
+w_{\text{new}} = w - \eta \frac{\partial \ell}{\partial w} = [1, 1] - 0.01 \cdot [1, 1] = [0.99, 0.99]
+\end{equation}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{欠拟合、过拟合和正则化}
+
+    \begin{description}
+        \item[欠拟合] 模型过于简单，无法捕捉数据中的模式。通常容易解决（例如调整模型结构、增加训练时间等）。
+        \item[过拟合] 模型过于复杂，过度适应训练数据，导致泛化能力下降。
+    \end{description}
+
+    解决过拟合的方式有两种：要么增加数据量，要么强制模型不那么复杂。前者优先，但在数据获取困难的情况下，后者是更常用的选择。
+
+    常见的正则化方法：
+    \begin{description}
+        \item[L1正则化] 显式正则化，在损失函数中添加$\lambda \sum_i  \mid w_i \mid $项，倾向于产生稀疏的权重。
+        \item[L2正则化] 显式正则化，在损失函数中添加$\lambda \sum_i w_i^2$项，倾向于产生较小的权重。
+        \item[Dropout] 隐式正则化，在训练过程中随机丢弃一部分神经元的输出，防止神经元之间过度依赖。
+    \end{description}
+    显式正则化会改变损失函数的数值；隐式正则化不会改变损失函数的数值。但两者都会改变模型的训练过程和最终的参数值，从而影响模型的性能。当过拟合不明显时，通常不需要使用正则化，因为正则化的本质是强行降低模型复杂度，贸然引入可能会导致欠拟合。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{梯度消失和梯度爆炸}
+
+    在训练过程中，这两个问题是非常常见的，尤其是在深层神经网络中。
+    
+    \begin{description}
+        \item[梯度消失] 当网络层数较多时，反向传播过程中梯度逐渐变小，最终趋近于零，导致模型无法有效地更新参数。
+        \item[梯度爆炸] 当网络层数较多时，反向传播过程中梯度逐渐变大，最终趋近于无穷大，导致模型参数更新过大，甚至数值不稳定。 
+    \end{description}
+    解决梯度消失和梯度爆炸的方法：
+    \begin{itemize}
+        \item 使用合适的激活函数，例如ReLU可以缓解梯度消失问题。
+        \item 使用权重初始化方法，例如Xavier初始化或He初始化，可以帮助缓解梯度消失和爆炸问题。
+        \item 使用批归一化（Batch Normalization）可以稳定训练过程，缓解梯度问题。
+        \item 使用残差连接（Residual Connections）可以帮助信息在网络中更有效地传播，缓解梯度消失问题。
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{KNN}
+
+    KNN（K-Nearest Neighbors）是一种基于实例的监督学习算法。它的基本思想是：对于一个新的输入样本，找到训练集中与该样本距离最近的K个邻居，然后根据这K个邻居的标签来预测新样本的标签。算法大致如下：
+\begin{enumerate}
+    \item 计算新样本与训练集中每个样本之间的距离（常用的距离度量包括欧氏距离、曼哈顿距离等）。
+    \item 找到距离最近的K个邻居。
+    \item 根据这K个邻居的标签进行投票（分类问题）或平均（回归问题），得到新样本的预测标签。
+\end{enumerate}
+    KNN算法的优点是简单易懂，适用于小规模数据集，并且不需要训练过程（即没有显式的模型）。缺点是计算成本高（尤其是在大规模数据集上），对噪声敏感，并且在高维空间中表现较差（即所谓的“维度灾难”）。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{聚类}
+
+    聚类通常使用K-means算法来实现。K-means算法的基本思想是：将数据集划分为K个簇，使得每个簇内的数据点尽可能相似，而不同簇之间的数据点尽可能不同。算法大致如下：
+\begin{enumerate}
+    \item 随机选择K个数据点作为初始簇中心。
+    \item 将每个数据点分配到距离最近的簇中心，形成K个簇。
+    \item 更新每个簇的中心为该簇内数据点的平均值。
+    \item 重复步骤2和3，直到簇中心不再发生变化或达到最大迭代次数。
+\end{enumerate}
+    K-means算法的优点是简单高效，适用于大规模数据集，并且在簇形状较为规则时表现良好。缺点是需要预先指定K值，对初始簇中心敏感，并且在簇形状不规则或存在噪声时表现较差。
+
+\end{frame}
+
+\section{卷积神经网络}
+
+\begin{frame}
+    \frametitle{卷积算法}
+
+    卷积通过一个被称作卷积核（或滤波器）的权重矩阵在输入数据上滑动，计算局部区域的加权和，从而提取特征。卷积算法的主要作用是提取输入数据中的局部和高级特征，并且通过共享权重的方式减少参数数量，从而提高模型的效率和泛化能力。
+    
+    卷积算法具有下列参数：
+    \begin{description}
+        \item[卷积核大小] 卷积核的尺寸，例如3x3、5x5等。
+        \item[步长] 卷积核在输入数据上滑动的步长。
+        \item[填充] 在输入数据的边界添加零的数量，以控制输出特征图的尺寸。
+        \item[卷积核数量] 卷积层中卷积核的数量，决定了输出特征图的深度。
+    \end{description}
+
+    \textbf{卷积保持了平移不变性}，即对于同一个滤波器而言，它会对输入数据中的相同特征产生相似的响应，无论该特征出现在输入的哪个位置。这使得卷积神经网络（CNN）在处理图像等具有空间结构的数据时非常有效。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{卷积层的一些计算}
+
+    关于手算卷积，应该都会（只要算加权和即可，小学水平）。
+
+    关于输出图的形状，我们有以下计算公式：
+\begin{equation}
+\text{输出宽度} = \left\lfloor \frac{\text{输入宽度} - \text{卷积核宽度} + 2 \times \text{填充}}{\text{步长}} \right\rfloor + 1
+\end{equation}
+\begin{equation}
+\text{输出高度} = \left\lfloor \frac{\text{输入高度} - \text{卷积核高度} + 2 \times \text{填充}}{\text{步长}} \right\rfloor + 1
+\end{equation}
+\begin{equation}
+\text{输出深度} = \text{卷积核数量}
+\end{equation}
+
+    关于卷积操作的可学习参数数量，我们有以下计算公式：
+\begin{equation}
+\text{参数数量} = (\text{卷积核宽度} \times \text{卷积核高度} \times \text{输入深度} + 1) \times \text{卷积核数量}
+\end{equation}
+    其中，$+1$是因为每个卷积核都有一个偏置项。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{池化算法}
+
+    池化算法和卷积算法类似，同样是一个滤波器在输入数据上滑动，但它不计算加权和，而是计算局部区域的最大值（最大池化）或平均值（平均池化）。
+
+    池化算法的主要作用是降低特征图的空间尺寸，从而减少参数数量和计算成本。池化算法也具有平移不变性。
+
+    池化算法的输出形状的计算公式与普通的卷积算法几乎完全一致，只有输出深度等于输入深度（因为池化操作不改变深度）。
+
+    池化算法没有任何可学习的参数，因此参数数量为0。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{卷积神经网络和感受野}
+
+    把卷积层、池化层和其他类型的层（全连接、激活函数等）组合在一起，就构成了一个卷积神经网络（CNN）。CNN在图像分类、目标检测、语义分割等计算机视觉任务中取得了巨大的成功。
+
+    卷积神经网络的感受野，指的是网络中某个特定层的一个神经元能够“看到”的输入数据的区域大小。具体而言，计算方法如下：
+    \begin{itemize}
+        \item 单一卷积层的感受野等于卷积核的大小。
+        \item 当多个卷积层堆叠在一起时，感受野会逐渐增大。对于第n层的感受野，可以通过递归计算得到：
+\begin{equation}
+R_n = R_{n-1} + (k_n - 1) \times \prod_{i=1}^{n-1} s_i
+\end{equation}
+其中，$R_n$是第n层的感受野大小，$k_n$是第n层卷积核的大小，$s_i$是第i层的步长。
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{特殊卷积：逐点卷积和转置卷积}
+
+    逐点卷积是一种特殊的卷积操作，使用1x1的卷积核进行卷积。
+    
+    逐点卷积的主要作用是\textbf{改变特征图的深度}，而不改变空间尺寸。逐点卷积可以看作是对每个像素位置上的特征进行线性变换，从而实现特征的重新组合和提取。\textbf{该操作能够大大降低运算量。}
+
+    \vspace{1em}
+
+    转置卷积也是一种特殊的卷积操作，通常用于上采样（即增加特征图的空间尺寸）。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{CNN的应用：目标检测}
+
+    \begin{description}
+        \item[R-CNN] 首先使用选择性搜索算法生成候选区域；然后把所有区域调整为固定大小；然后将每个区域输入VGG分类；最后使用边界框回归来微调候选区域的位置。问题：候选区域生成太慢；候选区域的尺寸不统一；候选区域的分类也很慢；无法进行端到端训练。
+        \item[SPP-Net] 引入空间金字塔池化层，解决了候选区域尺寸不统一的问题。问题：候选区域生成仍慢（但分类更快了）；无法进行端到端训练。
+        \item[Fast R-CNN] 引入RoI Pooling层，进一步提高了速度并可以进行较为初级的端到端训练。问题：候选区域的生成依然是瓶颈。
+        \item[Faster R-CNN] 引入区域建议网络（RPN）替换了选择性搜索算法，极大地提高了候选区域生成的速度，实现了真正的端到端训练，准确性也得到了提升。
+        \item[YOLO] 将目标检测问题转化为一个回归问题，把问题完全丢给CNN来解决，极大地提高了检测速度，但准确性有所下降（尤其是小目标）。
+        \item[SSD] 在YOLO的基础上引入了多尺度特征图，提升了小目标的检测准确性，同时保持了较快的检测速度。
+    \end{description}
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{CNN的应用：图像分割}
+    目标：将图像中的每个像素分类到不同的类别中，得到一个与输入图像尺寸相同的分割图。
+    
+    方法：全卷积神经网络。FCN全都是卷积层和池化层，没有全连接层。具体的方法包括：SegNet、PSPnet等。
+
+    技巧：
+    \begin{description}
+        \item[镜像填充] 在输入图像的边界处进行镜像填充，以保持输出图像的尺寸与输入图像相同。
+        \item[跳跃连接] 在网络中引入跳跃连接，将浅层特征图与深层特征图进行融合，以保留更多的空间信息。
+        \item[损失加权] 对于不同类别的像素，给予不同的权重，以解决类别不平衡问题。 
+    \end{description}
+\end{frame}
+
+\begin{frame}
+    \frametitle{CNN的应用：人脸识别与人脸认证}
+
+    \begin{description}
+        \item[人脸验证] 判断两张人脸图像是否属于同一个人。
+        \item[人脸识别] 从数据库中识别出输入人脸图像对应的身份。
+    \end{description}
+
+    人脸识别最常用的方法是开放式人脸识别（模型固定，数据库可变）。一般做法是：先训练一个图像编码器，从图像中提取\textbf{区分性特征向量}；数据库中，不同人的脸有着不同的特征向量，相同人的脸有着相似的特征向量；通过比较待查特征向量与已知特征向量之间的距离来进行识别。
+\end{frame}
+
+\begin{frame}
+    \frametitle{姿态估计}
+
+    姿态估计指的是从图像或视频中估计人体的姿态，通常表示为人体关键点的位置。常见范式包括：
+    \begin{description}
+        \item[自顶向下] 先对每个人进行检测，得到位置和边界框；然后对每个人进行关键点检测，得到关键点位置。优势是只要目标检测对了，姿态估计就很容易对。缺点是如果目标检测检查不到人则完全失败；推理时间和人物数量成正比；对于复杂的场景容易出错。具体实例如CPM算法。
+        \item[自底向上] 先对图像中的所有关键点进行检测，得到关键点位置；然后将关键点分配到不同的人。这样的好处是快，坏处是不容易将关键点正确地分配到不同的人，尤其是在多人重叠的情况下。具体事例如OpenPose算法（本质就是CPM反着写）。
+    \end{description}
+
+    PPN算法则是综合了YOLO和OpenPose的思想，先使用YOLO检测出人体位置，然后在每个人的位置上使用OpenPose进行关键点检测，从而实现了较快的速度和较高的准确性。局限性依然是在人群密集的情况下容易出错，且对人物尺度差异较大的情况不太友好。
+
+\end{frame}
+
+\section{RNN}
+
+\begin{frame}
+    \frametitle{循环神经网络}
+
+    传统的FNN（CNN、MLP）只能每次输入获得一个输出，但大量的数据是具有序列的（如文本、音乐、视频等），不能直接使用FNN来处理。RNN专门就是为处理序列数据而设计的神经网络结构。本课程中，我们主要研究RNN在自然语言处理（NLP）中的应用。
+\end{frame}
+
+\begin{frame}
+    \frametitle{词的表示}
+
+    \begin{description}
+        \item[独热编码] 每个词被表示为一个长度等于词汇表大小的向量，其中只有一个位置为1，其他位置为0。
+        \item[词袋模型] 使用单词频率表示句子。问题：维度灾难（一个句子就是一个维度等同于词表的向量）；不能捕捉词之间的语义关系；不能捕捉词序信息。
+        \item[词嵌入] 将每个词映射到一个低维的连续向量空间中，能够捕捉词之间的语义关系。理想情况下，该语义信息甚至可以通过向量运算来表达（例如“北京”-“中国”+“美国”应该接近“华盛顿”）。词嵌入是目前主要的词表示方法，但需要专门训练。
+    \end{description}
+
+    一个词嵌入手段Word2Vec就有两种训练方法：
+    \begin{itemize}
+        \item CBOW（Continuous Bag of Words）模型：给定上下文词，预测中心词。
+        \item Skip-gram模型：给定中心词，预测上下文词。
+    \end{itemize}
+    然后再加上“负采样”技术，即在训练过程中，除了使用真实的上下文词作为正样本外，还随机采样一些不在上下文中的词作为负样本，从而提高训练效率和效果。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{时间步与序列数据}
+
+    在RNN中，时间步（Time Step）是指网络在处理序列数据时的每一个时间节点。每个时间步都会接收当前时刻的输入，并产生当前时刻的输出，同时更新内部状态。
+
+    于是，根据输入和输出的不同，我们可以把RNN分为以下几种类型：
+    \begin{description}
+        \item[单输入单输出] 和FNN相同。见于非序列数据的处理。
+        \item[单输入多输出] 例如文本生成，输入一个种子（文本或图片），输出一个文本序列。
+        \item[多输入单输出] 例如文本分类，输入一个文本序列，输出一个类别标签。（如果把整个序列一口气丢给FNN也能做，但RNN更适合处理时序信息）
+        \item[同步的多输入多输出] 例如天气预测，在每个时间步输入当前的天气数据，输出当前的天气预测。
+        \item[异步的多输入多输出] 例如机器翻译，输入一个文本序列（源语言），输出一个文本序列（目标语言）。
+    \end{description}
+    而后四种类型的RNN，除了多输入单输出丢给FNN还勉强能做外，其余三种类型的RNN都是FNN完全无法胜任的。这正是因为它需要处理时序信息。
+\end{frame}
+
+\begin{frame}
+    \frametitle{朴素的RNN}
+
+    做法：把前一个时间步的状态丢给下一个时间步。具体而言，我们可以定义一个这样的朴素RNN：
+    \[ h_t = \sigma(W_{hh} h_{t-1} + W_{xh} x_t + b_h) \]
+    \[ y_t = W_{hy} h_t + b_y \]
+    其中，$y_t$是该时间步的输出。
+
+    这样显然就能够处理序列数据了。但我们很容易就会发现一个问题：当序列很长很长的时候，几乎必然会导致梯度消失或梯度爆炸的问题，从而使得模型无法有效地学习长距离依赖关系、维持长期记忆。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{LSTM}
+
+    LSTM的手段是引入了一个叫做\textbf{细胞状态}的特殊结构，以及三个门控机制（输入门、遗忘门和输出门），来控制信息的流动和更新，从而有效地缓解了梯度消失和爆炸的问题。
+    \[ f_t = \sigma(W_f [h_{t-1}, x_t] + b_f) \]
+    \[ i_t = \sigma(W_i [h_{t-1}, x_t] + b_i) \]
+    \[ o_t = \sigma(W_o [h_{t-1}, x_t] + b_o) \]
+    \[ \tilde{C}_t = \tanh(W_C [h_{t-1}, x_t] + b_C) \]
+    \[ C_t = f_t * C_{t-1} + i_t * \tilde{C}_t \] 
+    \[ h_t = o_t * \tanh(C_t) \]
+    
+    分析以上公式，我们可以看到，LSTM通过三个门控机制来控制信息的流动：
+    \begin{itemize}
+        \item 输入门负责控制当前输入信息的流入程度。
+        \item 输出门负责控制当前细胞状态信息的流出程度。
+        \item 遗忘门负责控制前一个细胞状态信息的保留程度。
+    \end{itemize}
+    目前没有任何LSTM的变体在性能上能够显著地超越LSTM。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{GRU}
+
+    GRU是比LSTM更简单的RNN变体。它不具有细胞状态，而是直接在隐藏状态上进行操作。GRU只有两个门控机制（重置门和更新门），并且将输入门和遗忘门合并成了一个更新门。
+    \[ z_t = \sigma(W_z [h_{t-1}, x_t] + b_z) \]
+    \[ r_t = \sigma(W_r [h_{t-1}, x_t] + b_r) \]
+    \[ \tilde{h}_t = \tanh(W_h [r_t * h_{t-1}, x_t] + b_h) \]
+    \[ h_t = (1 - z_t) * h_{t-1} + z_t * \tilde{h}_t \]
+
+    GRU的性能通常与LSTM相当，但结构简单、训练更快。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{用RNN做文本生成}
+
+    RNN生成文本的基本公式是条件概率的链式法则：
+\begin{equation}
+P(x_1, x_2, \ldots, x_n) = P(x_1) P(x_2  \mid  x_1) P(x_3  \mid  x_1, x_2) \ldots P(x_n  \mid  x_1, x_2, \ldots, x_{n-1})
+\end{equation}
+
+    实际上在生成的时候，我们几乎总是贪心的选取最高概率的词作为下一个词。而实际应用中，为了提高模型生成的多样性，我们通常会引入一些随机性，例如使用温度采样或核采样等方法来增加生成文本的多样性，即允许模型在生成过程中选择一些概率较低的词，从而避免生成过于单一和重复的文本。
+
+\end{frame}
+
+\begin{frame}
+    \frametitle{RNN的应用}
+
+    \begin{description}
+        \item[句子情感分析] 分类任务，输入一个句子，输出一个情感标签（例如正面、负面、中性等），因此是多对单的RNN。
+        \item[图片描述] 生成任务，输入一张图片，输出一个描述该图片的句子，因此是单对多的RNN。
+        \item[文本生成与语言建模] 生成任务，输入一段种子文本，令每一步的输出作为下一步的输入，生成一个文本序列，因此是单对多的或同步多对多的RNN。
+        \item[聊天机器人] 生成任务，输入一个用户的消息，将这个消息进行编码处理，然后生成一个回复消息，因此是异步多对多的RNN。
+    \end{description}
+
+\end{frame}
+
+\end{document}
